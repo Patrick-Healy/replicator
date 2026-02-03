@@ -1,0 +1,23 @@
+# R
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+renv/library/
+renv/staging/
+
+# Stata
+*.log
+*.smcl
+*.stswp
+
+# System
+**/.DS_Store
+Thumbs.db
+
+# Logs
+run_log.txt
+
+# Local libraries (tracked separately or regenerated)
+# libraries/stata/*.pkg
+# libraries/R/
