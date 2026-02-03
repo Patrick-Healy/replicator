@@ -1,520 +1,142 @@
-# Monash SoDa Replication Template
+# Replication Compliance Skill
 
-This repository provides a **template for reproducible, collaborative applied-economics projects**. It contains a basic directory structure(`code/`, `paper/`, `data/`), starter scripts, virtual-environment stubs, and a replication checklist that feeds an automated AI code-review workflow. The [main](https://github.com/cdueben/soda_replicator/tree/main) branch contains example files to illustrate template use. Download the example-free [clean](https://github.com/cdueben/soda_replicator/tree/clean) branch at the outset of every study to lock in best-practice version control, hand-offs between co-authors and supervisors, and generation of replication packages.
+An [Agent Skill](https://agentskills.io) for auditing research repositories against the [Data and Code Availability Standard (DCAS)](https://datacodestandard.org).
 
----
-
-## How to Use This Repo
-
-Video tutorial for those who do not want to read the documentation or who need more extensive explanations: https://youtube.com/playlist?list=PLqlvVlXl5PP0NMi-91iG-HuafsIa_qcf6&si=d1mzORY3edhCzF7N.
-
-### 1. Installation 🚀
-
-1.1  Download the [clean](https://github.com/cdueben/soda_replicator/tree/clean) template: **[Code › Download ZIP](https://github.com/cdueben/soda_replicator/archive/refs/heads/clean.zip)**.
-
-1.2  Unpack & rename the folder to your *project name*.
-
-1.3 Make sure you have Git installed and GitHub [configured](https://docs.github.com/en/get-started/git-basics/set-up-git).
-+ **Tip:** New to Git? Follow the *Hello World* [tutorial](https://guides.github.com/activities/hello-world).
-
-1.4 Open the GitHub website and create two empty private repositories with the named `name-of-your-project_code` and `name-of-your-project_paper`, with `name-of-your-project` being a short name (probably one or two words) for your research project.
-
-1.5 Open the terminal (Git Bash on Windows) locally in the `code` folder and enter the following commands:
-
-```bash
-git init
-git add .
-git commit -m "initial commit"
-git remote add origin https://github.com/your-github-name/name-of-your-project_code.git
-git push -u origin main
-```
-
-1.7 Repeat step 1.6 for the `paper` directory.
-
-1.8 Configure the two GitHub repositories on the website:
-   + **Settings › Collaborators** → add co-authors & supervisors
-   + (Optional) Protect `main` branch (enforce code review) & enable GitHub Actions
-
-1.9 Share the `data` folder with your collaborators through a cloud storage provider, like Dropbox or Google Drive.
-
-### 2. Create the Project Checklist 📝
-
-2.1 Open `code/checklist.md` and `paper/checklist.md`.  
-
-2.2 With your co-authors/ supervisor, **outline steps** to fit *this* project's data sources, methods, and outputs.  
-
-2.3 Commit changes:  
-
-```bash
-   git add checklist.md
-   git commit -m "customize replication checklist"
-   git push origin main
-```
-
-### 3. Understand the Folder Structure 🏗️
-
-```bash
-project-root/
-├── code/            # empirical analysis code managed with Git
-|    ├── run.do      # master script (Stata) - runs entire analysis
-|    ├── run.R       # master script (R) - runs entire analysis
-|    ├── dataprep/   # data preparation scripts
-|    ├── analysis/   # analysis scripts
-|    ├── programs/   # helper functions and subroutines
-|    └── libraries/  # local copies of user-written packages
-|         ├── stata/
-|         └── R/
-├── paper/           # manuscript, slides, figures, and tables managed with Git
-|    ├── draft/
-|    ├── presentation/
-|    └── results/
-└── data/            # data shared through cloud storage provider
-     ├── raw/        # read-only raw input data
-     ├── interim/    # intermediate processed data
-     ├── analysis/   # final analysis-ready datasets
-     └── literature/ # reference papers (optional)
-```
-
-**Use relative paths when scripts reference data!** I.e. `../data/analysis/baseline.csv` instead of `/home/your_username/cloud_folder/your_project/data/analysis/baseline.csv`.
-
-### 4. Start Coding 👩‍💻👨‍💻
-
-4.1 Activate the virtual environment in `code` ([`renv`](https://rstudio.github.io/renv/)/ [`venv`](https://docs.python.org/3/library/venv.html)/ [`conda`](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html)).
-
-4.2 Write scripts in `code/dataprep` and `code/analysis`.
-
-4.3 Test the pipeline, then push:
-
-```bash
-git add .
-git commit -m "add first data-prep script"
-git push origin main
-```
-4.4 Verify commits and CI status on GitHub ([GitHub guide](https://docs.github.com/en/get-started/quickstart)).
-
-### 5. Tick Off the Checklist ✔️
-
-After each milestone:
-
-+ Edit `checklist.md`.
-+ Select elements with `[x]`.
-+ Request review via an issue or a pull request.
-
-### 6. Run the AI Code Checker 🤖
-
-Invoke the AI checker with `@claude` in an issue or a pull request to:
-  + Read checklist.md.
-  + Evaluate to what extent the contents of the repository align with the checklist.
-
-### 7. Create Final Replication Package for Submission
-
-7.1 Follow [guidelines](https://github.com/AEADataEditor/replication-template) from AEA Data editor.
-
-7.2 Have a look at Cynthia Huang's quarto replication [slides](https://cynthiahqy.github.io/monash-quarto-aea/02a-template/) and [template](https://github.com/cynthiahqy/quarto-replication-template).
-
-### 8. Useful Resources
-
-8.1 Video Tutorials on the SoDa Replicator
-+ [Youtube Playlist](https://youtube.com/playlist?list=PLqlvVlXl5PP0NMi-91iG-HuafsIa_qcf6&si=d1mzORY3edhCzF7N)
-
-8.2 Coding, Data Science, and Reproducibility & Replicability Guides
-+ [Grant McDermott - Data Science for Economists](https://github.com/uo-ec607/lectures)
-+ [LOST - Library of Statistical Techniques](https://lost-stats.github.io/)
-+ [Dan Sullivan - Best Practices When Writing Code](https://www.danielmsullivan.com/pages/tutorial_workflow_3bestpractice.html)
-+ [Model to Meaning](https://marginaleffects.com/)
-+ [AEA Data Editor](https://aeadataeditor.github.io/aea-de-guidance/)
-+ [Koenker & Zeileis - On Reproducible Econometric Research](http://www.econ.uiuc.edu/~roger/research/repro/)
-
-8.3 Stata
-+ [Julian Reif - Stata Coding Guide](https://julianreif.com/guide/) (highly recommended)
-+ [Poverty Action Lab Stata Guide](https://povertyaction.github.io/guides/cleaning/readme/)
-+ [Asjad Naqvi - The Stata Guide](https://medium.com/the-stata-guide)
-+ [Sean Higgins's Stata Guide](https://github.com/skhiggins/Stata_guide)
-+ [Asjad Naqvi - Stata-to-LaTeX Guide](https://medium.com/the-stata-guide/the-stata-to-latex-guide-6e7c5e9b3f0d)
-
-8.4 R
-+ [Fixest Walkthrough](https://cran.r-project.org/web/packages/fixest/vignettes/fixest_walkthrough.html)
-+ [R for Data Science](https://r4ds.hadley.nz/)
-+ [Introduction to data.table](https://cran.r-project.org/web/packages/data.table/vignettes/datatable-intro.html)
-+ [Hans H. Sievertsen - Applied Economics with R](https://hhsievertsen.github.io/applied_econ_with_r/)
-
-8.5 Python
-+ [Monash SoDa Labs - Web Scraping with Python](https://monashdatafluency.github.io/python-web-scraping/)
-
-8.6 LaTeX
-+ [Overleaf](https://www.overleaf.com/)
-+ [TeX Live](https://tug.org/texlive/)
-+ [TeX Live Dev Container](https://github.com/sodalabsio/tex_live_dev_container)
+**Repository:** https://github.com/Patrick-Healy/replicator
 
 ---
 
-# Documentation
-While the above section is a quick manual on how to get started with the template, the following documentation goes more into detail. It explains how to manage the project, which information to store where, etc.
+## What It Does
 
-## Introduction
-This repository contains a template for a reproducible research project. The focus lies on quantitative social science. Recommendations might not fully apply to other fields.
+The `replication-compliance` skill enables AI agents to:
 
-Download the template at the start of each new research project. The purpose is to ensure the reproducibility of your analyses from day one with little effort. That does not mean following journals' replication package structure throughout the project, but to have a system in place from which you can produce a replication package with little effort.
+1. **Scan any research repository** - Detects Stata, R, Python, MATLAB, Julia projects
+2. **Check DCAS compliance** - Audits against all 16 rules systematically
+3. **Generate actionable reports** - Prioritized recommendations with code examples
+4. **Guide version control** - Safe git workflows for researchers
 
-Whereas a journal replication package is the final project state bundled into a single unit and extensively documented, earlier stages often benefit from a more modular structure. You probably want to manage your code with Git, but you obviously do not upload terabytes of data to GitHub. Furthermore, it is usually inefficient to maintain the extensive, clunky journal replication package documentation from the start of the project. Rather have a setup which allows you to quickly generate that documentation when needed.
+## Quick Start
 
-While most recommendations here are agnostic of your choice of data science and typesetting language, this readme adds some language-specific comments in a section below.
+With a compatible AI agent (Claude Code, Cursor, Windsurf, etc.):
 
-## Directory Structure
-Before we discuss the directory structure, it is important to stress that you are not meant to use the template as a single Git repository. We host the three separate folders (`data`, `code`, and `paper`) jointly in one place so that you can download them in one go and have a good overview of the entire structure. In your project, you administer them as distinct repositories (`code` and `paper`) and one non-Git folder (`data`) located in one parent directory.
-
-To summarize the contents: `data` holds the data, `code` holds the quantitative analysis code, and `paper` holds the markup code.
-
-### Data
-The `data` directory holds the project's data sets. Raw input data, as downloaded from the source or as collected in an experiment, goes into `data/raw`. Processed, evaluation-ready data belongs into `data/analysis`. In projects with long data cleaning pipelines, it might make sense to add a `data/interim` folder.
-
-As already mentioned, Git is designed for code, not for large data sets. It is a good idea to store the data in a folder synced to the cloud, but not to manage it with Git.
-
-If there are multiple input data sets, each of them should have its separate directory in `data/raw`. The template contains two fictional examples: population data downloaded from `example.com` and weather data downloaded from `example.org`. The data set publisher's documentation, sometimes referred to as code book, and a text file documenting the download URL and the download date should accompany the data files. Online resources can change over time. Hence, store all of this information together in one location from the start.
-
-Similarly, different sets of analysis data can be organized into multiple folders in `data/analysis`. They do, of course, not require extra documentation on where they came from or on which day they were created. The information on how to create the files from the raw data belongs into the `code` directory. And that code should produce the analysis data irrespective of the execution date. It is a good habit to document the analysis data files in that code because (i) this checks the documentation into version control and (ii) it keeps the explanations close to the logic creating the data.
-
-Because many researchers share downloaded papers that are relevant to the project with their coauthors in cloud folders, `data` also has a `literature` subdirectory. This is simply for convenience. Downloaded article PDFs are not part of the final replication package submitted to journals. `data\literature` only exists for paper sharing among coauthors while the project is evolving. It is optional and can be omitted.
-
-The reason to place `literature` in `data`, and not in `paper`, is to exclude it from version control. PDFs in the hundreds of pages would simply clutter the git history meant to track files that you are editing yourself and that feed into a subsequent replication package.
-
-### Code
-The quantitative analysis code, covering all steps from the raw data to the results shown in the paper, belong into the `code` directory. This is your R, Python, Stata, Julia, C++ code. It should be managed with Git.
-
-The preprocessing steps turning the `data/raw` into the `data/analysis` files are in `code/dataprep` and the steps deriving insights from the `data/analysis` data are in `code/analysis`. You should, especially in larger projects, further divide the `code/dataprep` and `code/analysis` into sub-folders. You could have one folder per input data set in `code/dataprep`, in which you do all the preprocessing of the respective data set. In a file at the `code/dataprep` level (not in a sub-directory), you then only merge the data. This template illustrates this with example files.
-
-The advantage of placing `code` in the same parent directory as `data` is that you can easily reference data sets using relative paths. No paths have to be adjusted when running the code from another computer. `../data/raw/population/population.csv` remains valid (`..` moves up one level from the current directory).
-
-### Paper
-The template's `paper` folder organization assumes users to either write their manuscripts locally or to connect their Overleaf project to Dropbox folder or GitHub. Overleaf users who host their projects entirely on that platform (without external connections) only store tables and figures in `paper`.
-
-As in the case of `code`, you should control the contents of the `paper` directory with Git - as long as you use a markup language. Students who are not yet familiar with LaTeX or Markdown and still use a word processor like Microsoft Word or Libre Office Writer may not experience large benefits from using Git.
-
-`paper` entails three sub-folders: `draft`, `results`, and `presentation`. Throughout the life cycle of a project, there are exploratory phases. You want to try out different empirical models to identify the underlying pattern in the data, and you experiment with theory to craft a framework that your estimations fit into. The `results` folder is the location to collect and discuss ideas. It is the foundation for the official manuscript in `draft`. `presentation` holds the markup code for seminar and conference presentations. As a PhD student also presenting posters, you might have an additional `poster` folder.
-
-`code` and `paper` are separate repositories because your quantitative analysis code and the work on your manuscript are often not in sync. Joining these two streams of work can lead to messy commit histories and chaotic branches.
-
-## Virtual Environments
-Data science software receives updates over time. R packages are not static. Developers fix bugs and change function behavior across releases. It, therefore, happens that you re-execute your code a few years after you wrote it and obtain different results. Because your replication package needs to reproduce the results shown in the paper, you then start digging through previous versions of the programming language and of the packages that you used. Unfortunately, many packages are not isolated pieces of software. Packages have dependencies. Hence, you puzzle together different package version combinations. In the end, you browse tens of thousands of lines of code and spend days and figuring out the source of a discrepancy.
-
-Virtual environments prevent such drama. The `renv` package in R and the `venv` module in Python track package versions at the project level and allow you to use different versions across projects. You can use version 1.0 in one project and version 1.2 in another project. When you come back to a study at a later point or when someone else wants to execute your code, the software automatically obtains the correct package version from the automatically created configuration file and computes the same results as you did initially.
-
-So, before you write any code, open the `code` directory and follow the installation instructions and introductions for [`renv`](https://rstudio.github.io/renv/), [`venv`](https://docs.python.org/3/library/venv.html), or alternatively [`conda`](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html).
-
-This template contains automatically created example configuration files.
-
-With C++, you do not need a virtual environment. Just use CMake with detailed flags and track that file with version control.
-
-## Version Control
-There are different version control tools out there. Git is the standard nowadays in both academia and industry. A Git tutorial is beyond the scope of this document. If you are not yet familiar with it, check out Monash's courses or one of the many other online resources on the topic. You are good to go with a few basic Git commands, which you can learn in a matter of minutes. If you want to leverage more advanced features, you should watch a few hours of instructional content.
-
-Overall, Git tracks versions of your files. It circumvents messy organization where you end up with project directories containing `paper.tex`, `paper_new.tex`, `paper_new_new.tex`, `paper_final.tex`, `paper_final_new.tex`. It allows you to jump between commits, which are version checkpoints set by you, without throwing extra tex files into your folder.
-
-Git comes with various labeling options for commits to easily identify versions. Recover the version of your poster that you presented at the conference last year. Roll back the changes which your coauthor made to your beautiful paper introduction. Access the robustness check that you deleted a year ago but now require to satisfy a referee. Have Git mark the lines of code that your coauthor changed last week.
-
-Without Git, you often end up with a number of redundant files and commented out code that does not feed into the current state of the paper but which you might need later. When that later moment comes, you neither remember which of the blocks you need to uncomment nor which of the files produced your current figures and tables in the paper.
-
-With Git, you only keep what generates the current state of the paper in the main branch. Your project looks small and concise. Git commands can recover old content if needed.
-
-Git branches allow you to develop multiple versions in parallel. If your coauthor wants to rephrase the paper, he or she can created a new branch and in the end you only merge the changes into the main branch, i.e. the official version, that you both agree on.
-
-If you want to collaborate with people based on Git, you need an online platform hosting the repository. GitHub and GitLab are popular choices that give you some extra functionality beyond Git. Pull requests are a tool to verify and discuss changes before they are merged into the official version of your analyses and manuscript. Issues help you keep track of to-does. And GitHub Actions facilitates automation, incl. automated tests.
-
-## Refactoring
-Git makes refactoring easier, but does not eliminate the need for it. In order to keep your repository clean, you regularly have to get together with your coauthors and figure out what content feeds into the current draft, which of the remaining code blocks and scripts should be removed, and which should be migrated to another branch.
-
-Despite researchers' reluctance to reorganize and rewrite code, this task is essential for reproducible research.
-
-## Clean Code
-Clean code helps others and your later self to make sense of code. Use intelligible variable, function, and file names. Adhere to a consistent style. Indent based on scope. Split code into multiple not overly long files. Use comments.
-
-There are many more clean coding recommendations. Write your code so that someone who is not part of the project can easily understand it.
-
-## Master Script
-
-Every project should have a master script (`run.do` for Stata, `run.R` for R) that executes the entire analysis pipeline. Running this script should:
-
-1. Process raw data into analysis datasets
-2. Run all statistical analyses
-3. Generate all tables and figures
-
-At any time, you can delete `data/interim/`, `data/analysis/`, and `paper/results/`, then rerun your master script to regenerate everything from scratch. This is the ultimate test of reproducibility.
-
-The template includes example master scripts for both Stata and R.
-
-## Managing Packages
-
-### The Problem
-
-User-written packages change over time. A package that works today may behave differently in five years. If you don't bundle packages with your code:
-- Replicators may get different results
-- Code may break on non-networked computers
-- Collaborators may use different package versions
-
-### Stata Solution
-
-1. Run `_install_stata_packages.do` to install packages to `libraries/stata/`
-2. The master script (`run.do`) configures Stata to use only these local packages
-3. Delete `_install_stata_packages.do` before creating your final replication package
-
-This approach ensures your code runs identically on any computer with Stata, even without internet access.
-
-### R Solution
-
-Use `renv` for package management:
-1. Run `renv::init()` at project start
-2. The `renv.lock` file records exact package versions
-3. Replicators run `renv::restore()` to install identical packages
-
-Alternative: Install packages to `libraries/R/` for offline replication (see `_install_R_packages.R`).
-
-## Environment Setup for Multi-Computer Workflows
-
-When working across multiple computers (laptop, office, home) or with coauthors, use profile files to define project paths once per machine.
-
-### Stata Profile
-
-Create `profile.do` in your Stata personal ado directory (type `adopath` to find it):
-
-```stata
-* Settings specific to local environment
-global DROPBOX "C:/Users/yourname/Dropbox"
-
-* Run settings common to all environments
-run "$DROPBOX/stata_profile.do"
-```
-
-In `stata_profile.do` on Dropbox, define project globals:
-
-```stata
-set varabbrev off
-global MyProject "$DROPBOX/my-project/code"
-```
-
-### R Profile
-
-Create `.Rprofile` in your home directory (find with `normalizePath(path.expand("~"))`):
-
-```r
-Sys.setenv(DROPBOX = "C:/Users/yourname/Dropbox")
-source(file.path(Sys.getenv("DROPBOX"), "R_profile.R"))
-```
-
-In `R_profile.R` on Dropbox:
-
-```r
-Sys.setenv(MyProject = file.path(Sys.getenv("DROPBOX"), "my-project/code"))
-```
-
-## Replication Package
-Once your paper has been conditionally accepted for publication, you commonly have to hand in a replication package.
-
-As mentioned above, it tends to be inefficient to adhere to the journal replication package format from the start of your project. Instead, you can assemble the required documents in no time, if you stick to the recommendations of this SoDa Replicator template.
-
-You have the information on input data in the documentation in the `data/raw` directory. Your virtual environment configuration file tells you which package versions you utilize. And your code documentation details how your analysis data set variables are defined.
-
-Some journals' data editors are not overly technical. To avoid various rounds of replication package resubmission, you should stick to simple wording in your instructions.
-
-Though requirements are not identical across journals, they tend to be similar. There are various guides on how to craft replication packages more broadly. Cynthia has written fantastic [slides](https://cynthiahqy.github.io/monash-quarto-aea/02a-template/) on replication packages in Quarto. And the [Data and Code Availability Standard](https://datacodestandard.org/) lists rules that a number of journals agree on.
-
-## DCAS Compliance
-
-This template is designed to meet the [Data and Code Availability Standard (DCAS)](https://datacodestandard.org) v1.0. The checklist in `code/checklist.md` maps directly to DCAS requirements:
-
-| DCAS Rule | Requirement | Template Support |
-|-----------|-------------|------------------|
-| **Data** | | |
-| 1 | Data Availability Statement | `code/README_TEMPLATE.md` |
-| 2 | Raw data | `data/raw/` + `DATA_SOURCE_TEMPLATE.md` |
-| 3 | Analysis data | `data/analysis/` |
-| 4 | Data format | Standard formats documented |
-| 5 | Metadata | Codebook templates provided |
-| 6 | Data citation | README template includes citation section |
-| **Code** | | |
-| 7 | Data transformation | `code/dataprep/` |
-| 8 | Analysis programs | `code/analysis/` |
-| 9 | Source format | All scripts in source format |
-| **Supporting** | | |
-| 10 | Instruments | `documents/` folder |
-| 11 | Ethics | `documents/` + README template |
-| 12 | Pre-registration | README template section |
-| 13 | README/Documentation | `code/README_TEMPLATE.md` follows SSDE schema |
-| **Sharing** | | |
-| 14 | Archive location | Documented in README |
-| 15 | License | `LICENSE` file included |
-| 16 | Omissions | README template section |
-
-### Language-Specific Guidance
-
-**Stata:**
-- Use `version` statement for reproducibility across Stata versions
-- Bundle packages in `libraries/stata/` via `_install_stata_packages.do`
-- Include `set varabbrev off` and `set seed`
-
-**R:**
-- Use `renv` for package management (`renv.lock`)
-- Call `set.seed()` for reproducibility
-- Log session info with `sessionInfo()`
-
-**Python:**
-- Include `requirements.txt` with pinned versions
-- Use virtual environment (`venv` or `conda`)
-- Set seeds: `random.seed()`, `np.random.seed()`, `torch.manual_seed()`
-
-## Compliance Checker Skill
-
-This template includes an [Agent Skill](https://agentskills.io) for automated compliance checking. The skill allows AI agents to audit repositories against DCAS standards.
-
-**Location:** `replication-compliance/`
-
-**Features:**
-- Automated DCAS compliance auditing
-- Language-specific checks (Stata, R, Python)
-- Compliance report generation
-- GitHub integration with safety controls
-- Version control workflow guidance
-
-**Usage with compatible agents (Claude Code, Cursor, etc.):**
 ```
 "Check if my repo is DCAS compliant"
-"Generate a compliance report"
-"Is my replication package ready for AEA submission?"
+"Audit this repository for replication package readiness"
+"Is my code ready for AEA submission?"
 ```
 
-See `replication-compliance/SKILL.md` for full documentation.
+The agent reads `replication-compliance/SKILL.md` and follows the audit workflow.
 
-## Pre-Submission Checklist
+---
 
-Before submitting your replication package, complete these steps:
+## Example Analysis: lp_var_inference
 
-### 1. Test Reproducibility
+We tested the skill on [Montiel Olea et al. (2026)](https://github.com/ckwolf92/lp_var_inference) - "Double Robustness of Local Projections and Some Unpleasant VARithmetic".
 
-- [ ] Make a fresh copy of your `code/` folder (this will become your replication package)
-- [ ] Delete `data/interim/` and `data/analysis/` (keep only `data/raw/`)
-- [ ] Delete `paper/results/figures/` and `paper/results/tables/` contents
-- [ ] Run `run.do` or `run.R` to regenerate everything from raw data
-- [ ] Verify reproduced output matches your manuscript exactly
+### Results Summary
 
-### 2. Lock Package Versions
+| Category | Score | Status |
+|----------|-------|--------|
+| Data Availability | 4/6 | Partial |
+| Code | 3/3 | Pass |
+| Documentation | 3/5 | Partial |
+| Sharing | 2/3 | Partial |
+| **Overall** | **12/17** | **71%** |
 
-- [ ] Delete `_install_stata_packages.do` (Stata packages are now frozen)
-- [ ] Verify `renv.lock` is up to date (`renv::snapshot()`)
-- [ ] Remove any development/debugging code
+### Key Findings
 
-### 3. Add Required Documentation
+**What's Good:**
+- MIT License for code
+- All data included (Ramey, Känzig) with proper permissions
+- Clear MATLAB structure (55 estimation functions)
+- Hardware/software documented
 
-- [ ] Include a [LICENSE](https://github.com/AEADataEditor/aea-de-guidance/blob/master/template-LICENSE.md) file
-- [ ] Create a README with:
-  - Paper title and authors
-  - Required software and versions
-  - Step-by-step instructions to run the analysis
-  - Description of raw data and sources
-  - Explanation of any confidential/proprietary data
-  - Description of each script
-  - Expected output locations
+**What's Missing:**
+- Data Availability Statement in README
+- Archive DOI (Zenodo/ICPSR)
+- MATLAB toolbox requirements list
 
-### 4. Final Verification
+**Full Report:** [`lp_var_inference/COMPLIANCE_REPORT.md`](lp_var_inference/COMPLIANCE_REPORT.md)
 
-- [ ] No absolute file paths in code (only relative paths)
-- [ ] No hardcoded usernames or machine-specific settings
-- [ ] No sensitive information (API keys, passwords) in code
-- [ ] Large data files excluded from Git (check `.gitignore`)
-- [ ] Code runs without errors from start to finish
+---
 
-### 5. Optional: Upload to Data Archive
+## Skill Structure
 
-Consider uploading to [ICPSR](https://www.icpsr.umich.edu/) or [Zenodo](https://zenodo.org/) for long-term preservation.
-
-## Stata Coding Tips
-
-### Pathnames
-- Use forward slashes (`$DROPBOX/project`) not backslashes (`$DROPBOX\project`)
-- Backslashes are escape characters and cause cross-platform issues
-
-### Avoid Hard-Coded Paths
-```stata
-* BAD: Breaks on other computers
-use "C:/Users/jreif/Dropbox/my-project/data/raw/mydata.dta"
-
-* GOOD: Uses global defined in profile or master script
-use "$RAW/mydata.dta"
+```
+replication-compliance/
+├── SKILL.md                      # Main skill instructions
+├── scripts/
+│   └── check_compliance.py       # Automated checker
+├── references/
+│   ├── DCAS_RULES.md             # All 16 DCAS rules explained
+│   ├── LANGUAGE_GUIDES.md        # Stata, R, Python, MATLAB, Julia
+│   ├── VERSION_CONTROL_WORKFLOWS.md  # Git workflows (CLI + Desktop)
+│   └── GITHUB_MCP_SETUP.md       # GitHub MCP integration
+└── assets/
+    └── report_template.md        # Report format template
 ```
 
-### File and Folder Names
-- Avoid spaces and capital letters: `my_data.dta` not `My Data.dta`
-- Case sensitivity varies across operating systems
+## DCAS Rules Covered
 
-### Prevent Variable Abbreviation Errors
-Add to your profile or master script:
-```stata
-set varabbrev off
+| Rules | Category | Checks |
+|-------|----------|--------|
+| 1-6 | Data | Availability statement, raw data, formats, metadata, citations |
+| 7-9 | Code | Transformation scripts, analysis programs, source format |
+| 10-12 | Supporting | Instruments, ethics, pre-registration |
+| 13 | Documentation | README completeness |
+| 14-16 | Sharing | Archive DOI, license, omissions |
+
+## Language Support
+
+The skill includes specific checks for:
+
+- **Stata** - `version`, `set seed`, package bundling, `profile.do`
+- **R** - `renv.lock`, `set.seed()`, `sessionInfo()`
+- **Python** - `requirements.txt`, virtual environments, seed setting
+- **MATLAB** - `startup.m`, `rng()`, toolbox documentation
+- **Julia** - `Project.toml`, `Manifest.toml`, `Random.seed!()`
+
+---
+
+## Version Control Safety
+
+The skill classifies git commands by risk level:
+
+| Level | Commands | Action |
+|-------|----------|--------|
+| Safe | `status`, `log`, `diff`, `branch` | Agent executes |
+| Moderate | `add`, `commit`, `push`, `pull` | Agent executes with explanation |
+| Dangerous | `reset --hard`, `rebase`, `force push` | User must run manually |
+| Forbidden | `push --force origin main` | Never suggested |
+
+GitHub Desktop instructions included for GUI users.
+
+---
+
+## Template Files
+
+This repo also includes the SoDa Replicator template structure:
+
 ```
-This prevents mistakes like accidentally referencing `mpg` when you meant `mpg_adjusted`.
-
-### Ensure Reproducible Sorts
-Non-unique sorts can produce different results across runs. Always verify uniqueness:
-```stata
-isid id year        // Verify unique before sorting
-sort id year
+code/           # Analysis code with master scripts (run.do, run.R)
+data/           # Raw, interim, analysis data folders
+paper/          # Manuscript, results, presentations
+documents/      # Ethics, instruments
 ```
 
-### Random Number Reproducibility
-Always set a seed before operations involving randomness:
-```stata
-set seed 12345
-sample 50
-```
+See [`code/README_TEMPLATE.md`](code/README_TEMPLATE.md) for the Social Science Data Editors README schema.
 
-### Assertions for Verification
-Include assertions to catch errors if results change unexpectedly:
-```stata
-reg price mpg weight
-assert abs(_b[mpg] - (-6.287)) < 0.001    // Verify coefficient
-```
+---
 
-### Performance with Large Data
-For large datasets, use:
-- `gtools` for faster collapse, egen, sort operations
-- `reghdfe` for high-dimensional fixed effects
-- `ftools` as a dependency for reghdfe
+## Resources
 
-## Claude Assistant GitHub Workflow Setup
+- [DCAS v1.0](https://datacodestandard.org) - The standard
+- [AEA Data Editor](https://aeadataeditor.github.io/aea-de-guidance/) - Journal guidelines
+- [Agent Skills](https://agentskills.io) - Skill specification
+- [Julian Reif's Stata Guide](https://julianreif.com/guide/) - Best practices
 
-This template includes a GitHub workflow for Claude Assistant, an AI-powered code review and assistance tool. Follow these steps to activate it:
+---
 
-### Prerequisites
-- GitHub repository with appropriate permissions
-- Anthropic API key (get from https://console.anthropic.com/)
+## License
 
-### Setup Steps
-
-#### 1. Add Anthropic API Key to Repository Secrets
-1. Go to your repository on GitHub
-2. Navigate to Settings → Secrets and variables → Actions
-3. Click "New repository secret"
-4. Name: `ANTHROPIC_API_KEY`
-5. Value: Your Anthropic API key
-6. Click "Add secret"
-
-#### 2. Verify Workflow File
-The workflow file is already included at `.github/workflows/claude.yml`. It will automatically:
-- Trigger on issue comments, pull request comments, and reviews
-- Respond to issues being opened or assigned
-- Use GitHub's built-in `GITHUB_TOKEN` for repository access
-
-#### 3. How It Works
-Claude will automatically respond to:
-- New issue comments
-- New pull request review comments
-- Issues being opened or assigned
-- Pull request reviews being submitted
-
-#### 4. Testing
-To test the workflow:
-1. Create a new issue in your repository
-2. Comment on the issue mentioning `@claude`
-3. Claude should respond automatically within a few minutes
-
-### Notes
-- Ensure your Anthropic API key has sufficient usage limits
-- Monitor GitHub Actions usage to avoid unexpected costs
+MIT License - see [LICENSE](LICENSE)
