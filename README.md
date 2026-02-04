@@ -2,7 +2,7 @@
 
 An [Agent Skill](https://agentskills.io) for auditing research repositories against the [Data and Code Availability Standard (DCAS)](https://datacodestandard.org).
 
-**Supported Tools:** Gemini CLI, Claude Code, OpenAI Codex, GitHub Copilot, Cursor
+**Version:** 1.2 | **Supported Tools:** Gemini CLI, Claude Code, OpenAI Codex, GitHub Copilot, Cursor
 
 ---
 
@@ -16,6 +16,11 @@ cd replicator
 
 The installer auto-detects your AI tools and installs globally. You can delete the repo after installation.
 
+**Update existing installation:**
+```bash
+./install.sh --update   # or just run /compliance-update in your AI tool
+```
+
 ---
 
 ## Usage
@@ -25,8 +30,9 @@ After installation, use these commands in **any research repository**:
 | Command | Description |
 |---------|-------------|
 | `/compliance-check .` | Quick scan for code-level issues |
-| `/audit .` | Full DCAS audit with detailed report |
+| `/audit .` | Full DCAS audit (auto-saves to `COMPLIANCE_REPORT.md`) |
 | `/compliance-help` | Show available commands and options |
+| `/compliance-update` | Check for and install skill updates |
 
 Or just ask naturally:
 ```
@@ -70,6 +76,15 @@ This skill automates the most common checks, saving time and improving submissio
 
 <details>
 <summary>Click to expand manual installation options</summary>
+
+### Install Script Options
+
+```bash
+./install.sh           # Install or update from local files
+./install.sh --update  # Download latest from GitHub and install
+./install.sh --check   # Check for updates without installing
+./install.sh --version # Show installed version
+```
 
 ### Gemini CLI
 
