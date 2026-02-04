@@ -11,11 +11,36 @@ An [Agent Skill](https://agentskills.io) for auditing research repositories agai
 
 ---
 
+## Agent Compatibility
+
+This skill follows the [Agent Skills standard](https://agentskills.io/specification) and works across multiple AI coding assistants:
+
+| Agent | How It Discovers the Skill |
+|-------|---------------------------|
+| **Claude Code** | Reads `.github/skills/` automatically |
+| **GitHub Copilot** | Reads `.github/skills/` + `.github/copilot-instructions.md` |
+| **OpenAI Codex CLI** | Reads `.github/skills/` automatically |
+| **Cursor** | Reads `.cursorrules` bridge → skill |
+| **Windsurf** | Reads `.windsurfrules` bridge → skill |
+| **Any agent** | Point to `AGENTS.md` or `.github/skills/replication-compliance/SKILL.md` |
+
+### Standards Used
+
+| Standard | File | Purpose |
+|----------|------|---------|
+| [Agent Skills](https://agentskills.io) | `.github/skills/replication-compliance/` | Primary skill definition |
+| [AGENTS.md](https://agents.md/) | `AGENTS.md` | Universal project context |
+| [Copilot Instructions](https://docs.github.com/en/copilot/customizing-copilot/adding-custom-instructions-for-github-copilot) | `.github/copilot-instructions.md` | GitHub Copilot bridge |
+| [Cursor Rules](https://docs.cursor.com/context/rules-for-ai) | `.cursorrules` | Cursor IDE bridge |
+| [Windsurf Rules](https://docs.windsurf.com/windsurf/cascade/workflows) | `.windsurfrules` | Windsurf IDE bridge |
+
+---
+
 ## What It Does
 
 The `replication-compliance` skill enables AI agents to:
 
-1. **Scan any research repository** - Reads files and folder structure to detect languages (Stata, R, Python, MATLAB, Julia) and key documents. Does not run your code unless explicitly asked.
+1. **Scan any research repository** - Reads files and folder structure to detect languages (Stata, R, Python, MATLAB, Julia). Does not run your code unless explicitly asked.
 2. **Check DCAS compliance** - Audits against all 16 rules by checking for files, code patterns (e.g., `set.seed()`), and metadata.
 3. **Generate actionable reports** - Prioritized recommendations with code examples to fix gaps.
 4. **Guide version control** - Safe git workflows with dangerous commands flagged for manual execution.
@@ -30,22 +55,31 @@ The `replication-compliance` skill enables AI agents to:
 git clone https://github.com/Patrick-Healy/replicator.git
 ```
 
-Then point your agent to the skill:
+Most agents will auto-discover the skill. If not, point your agent to it:
 
 ```
-"Using the instructions in /path/to/replicator/replication-compliance/SKILL.md,
+"Using the skill at .github/skills/replication-compliance/SKILL.md,
 audit my repository at /path/to/my-project for DCAS compliance"
 ```
 
 ### Option 2: Copy just the skill folder
 
-Copy `replication-compliance/` into your project or a shared location. The skill works standalone - the template folders (`code/`, `data/`, `paper/`) are not required.
+Copy `.github/skills/replication-compliance/` into your project's `.github/skills/` directory. The skill works standalone.
+
+### Option 3: Reference remotely
+
+Some agents can fetch skills from URLs:
+
+```
+"Use the replication-compliance skill from
+https://github.com/Patrick-Healy/replicator to audit this repo"
+```
 
 ---
 
 ## Quick Start
 
-With a compatible AI agent (Claude Code, Cursor, Windsurf, etc.):
+With any compatible AI agent:
 
 ```
 "Check if my repo is DCAS compliant"
@@ -53,7 +87,7 @@ With a compatible AI agent (Claude Code, Cursor, Windsurf, etc.):
 "Is my code ready for AEA submission?"
 ```
 
-The agent reads `SKILL.md` (the instruction file) and follows the audit workflow. You don't need to read `SKILL.md` yourself - just point the agent to it.
+The agent reads `SKILL.md` and follows the audit workflow. You don't need to read it yourself.
 
 **Note:** The skill can audit any repository structure. The included template is recommended but not required.
 
@@ -93,7 +127,7 @@ We tested the skill on [Montiel Olea et al. (2026)](https://github.com/ckwolf92/
 ## Skill Architecture
 
 ```
-replication-compliance/
+.github/skills/replication-compliance/
 ├── SKILL.md                      # Agent instructions: defines audit workflow
 ├── scripts/
 │   └── check_compliance.py       # Automated checker: fast file/pattern searches
@@ -101,7 +135,7 @@ replication-compliance/
 │   ├── DCAS_RULES.md             # All 16 DCAS rules explained
 │   ├── LANGUAGE_GUIDES.md        # Stata, R, Python, MATLAB, Julia best practices
 │   ├── VERSION_CONTROL_WORKFLOWS.md  # Git workflows (CLI + GitHub Desktop)
-│   └── GITHUB_MCP_SETUP.md       # GitHub MCP server integration
+│   └── GITHUB_MCP_SETUP.md       # MCP server integration for tool access
 └── assets/
     └── report_template.md        # Report format template
 ```
@@ -111,7 +145,7 @@ replication-compliance/
 | Component | Role |
 |-----------|------|
 | `SKILL.md` | High-level prompt defining the step-by-step audit workflow. The agent reads this to understand what to check and how to report findings. |
-| `check_compliance.py` | Python script the agent can run for fast automated checks (file existence, regex searches for seeds, license detection). Optional - agent can also check manually. |
+| `check_compliance.py` | Python script the agent can run for fast automated checks (file existence, regex searches for seeds, license detection). Optional. |
 | `references/` | Supporting documentation the agent consults for language-specific guidance and DCAS rule details. |
 
 ---
@@ -155,7 +189,7 @@ GitHub Desktop instructions included for GUI users.
 
 ## Template Files (Optional)
 
-This repo includes a best-practice project structure from SoDa Labs. **Use of this template is recommended but not required** - the skill can audit any repository structure.
+This repo includes a best-practice project structure from SoDa Labs. **Use of this template is recommended but not required.**
 
 ```
 code/           # Analysis code with master scripts (run.do, run.R)
@@ -182,18 +216,29 @@ Contributions to improve the skill are welcome.
 2. Update detection logic in `check_compliance.py`
 3. Add language-specific checks to `SKILL.md`
 
-### To improve documentation:
-- `references/DCAS_RULES.md` - Rule explanations and examples
-- `references/VERSION_CONTROL_WORKFLOWS.md` - Git guidance
+### To improve agent compatibility:
+- Update bridge files (`.cursorrules`, `.windsurfrules`, etc.)
+- Test with the target agent
+- Document any agent-specific behavior
 
 ---
 
 ## Resources
 
-- [DCAS v1.0](https://datacodestandard.org) - The standard
+**Standards:**
+- [Agent Skills Specification](https://agentskills.io/specification) - The skill format
+- [AGENTS.md](https://agents.md/) - Project context standard
+- [DCAS v1.0](https://datacodestandard.org) - The compliance standard
+- [Model Context Protocol](https://modelcontextprotocol.io/) - Tool integration
+
+**Guides:**
 - [AEA Data Editor](https://aeadataeditor.github.io/aea-de-guidance/) - Journal guidelines
-- [Agent Skills](https://agentskills.io) - Skill specification
 - [Julian Reif's Stata Guide](https://julianreif.com/guide/) - Best practices
+- [GitHub Blog: Writing a Great AGENTS.md](https://github.blog/ai-and-ml/github-copilot/how-to-write-a-great-agents-md-lessons-from-over-2500-repositories/)
+
+**Community:**
+- [awesome-agent-skills](https://github.com/skillmatic-ai/awesome-agent-skills) - Skill collection
+- [awesome-copilot](https://github.com/github/awesome-copilot) - Copilot resources
 
 ---
 
