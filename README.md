@@ -8,17 +8,23 @@ An [Agent Skill](https://agentskills.io) for auditing research repositories agai
 
 ## Quick Install
 
+**One-liner (recommended):**
 ```bash
-git clone https://github.com/Patrick-Healy/replicator.git
-cd replicator
-./install.sh
+curl -fsSL https://raw.githubusercontent.com/Patrick-Healy/replicator/main/install.sh | bash
 ```
 
-The installer auto-detects your AI tools and installs globally. You can delete the repo after installation.
+**Or clone and run:**
+```bash
+git clone https://github.com/Patrick-Healy/replicator.git
+cd replicator && ./install.sh
+```
+
+The installer auto-detects your AI tools (Gemini, Claude, Codex, Copilot, Cursor) and installs globally.
 
 **Update existing installation:**
 ```bash
-./install.sh --update   # or just run /compliance-update in your AI tool
+curl -fsSL https://raw.githubusercontent.com/Patrick-Healy/replicator/main/install.sh | bash
+# or run /compliance-update in your AI tool
 ```
 
 ---
