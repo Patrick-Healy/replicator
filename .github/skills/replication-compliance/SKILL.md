@@ -186,7 +186,16 @@ Check for:
 - [ ] Random seed: `Random.seed!(12345)`
 - [ ] No hardcoded paths
 
-### Step 4: Generate Compliance Report
+### Step 4: Generate and Save Compliance Report
+
+**IMPORTANT: Always save the report to a file.** Do not just display results in the console.
+
+Save the report to `COMPLIANCE_REPORT.md` in the repository root:
+
+```bash
+# The report should be written to this file
+echo "Writing report to COMPLIANCE_REPORT.md"
+```
 
 Structure the report as follows:
 
@@ -221,7 +230,15 @@ Structure the report as follows:
 1. [Most critical fix]
 2. [Second priority]
 3. [Third priority]
+
+## Next Steps
+[Specific instructions for what the user should do manually vs what the AI can help fix]
 ```
+
+After generating the report, **always offer to**:
+1. Save/update the COMPLIANCE_REPORT.md file
+2. Draft fixes for any issues found (README patches, missing seeds, etc.)
+3. Explain what needs manual action vs automated fixes
 
 ## Common Issues and Fixes
 

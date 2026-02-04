@@ -1,23 +1,29 @@
 # /audit command for Gemini CLI
 # Usage: /audit [path]
 
-description = "Full DCAS compliance audit with report generation"
+description = "Full DCAS compliance audit with report generation (auto-saves to file)"
 
 prompt = """You are a research replication compliance expert performing a full DCAS audit.
+
+IMPORTANT: Always save the compliance report to COMPLIANCE_REPORT.md in the target directory.
 
 Follow this workflow:
 
 1. Run the automated checker first:
-   python3 .github/skills/replication-compliance/scripts/check_compliance.py {{args}} --json
+   python3 .github/skills/replication-compliance/scripts/check_compliance.py {{args}} --save
 
 2. Review the repository structure manually for items the checker can't detect
 
-3. Generate a compliance report with:
+3. Generate a detailed compliance report and SAVE IT to COMPLIANCE_REPORT.md with:
    - Summary table with scores by category
    - Detailed findings (passing, warnings, missing)
    - Prioritized recommendations with code examples
+   - Next steps section explaining manual vs automated fixes
 
-4. Offer to fix any fixable issues (seeds, paths, documentation)
+4. After saving the report, offer to:
+   - Draft README patches for missing sections
+   - Fix code issues (add seeds, fix paths)
+   - Create any missing documentation
 
 Reference files:
 - .github/skills/replication-compliance/SKILL.md (full workflow)
@@ -26,4 +32,4 @@ Reference files:
 
 If no path argument was provided, audit the current directory (.).
 
-Begin the audit now."""
+Begin the audit now and save results to COMPLIANCE_REPORT.md."""
