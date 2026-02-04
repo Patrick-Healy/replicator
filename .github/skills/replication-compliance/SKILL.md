@@ -418,6 +418,37 @@ confidential_data: true
 
 When this file exists, adjust checks accordingly.
 
+## Automated Code-Level Checks
+
+The `check_compliance.py` script includes deep code analysis to detect issues that cause 75% of replication failures:
+
+```bash
+# Full compliance check
+python scripts/check_compliance.py /path/to/repo
+
+# Code-level checks only (fast)
+python scripts/check_compliance.py /path/to/repo --code-only
+
+# JSON output for CI/CD integration
+python scripts/check_compliance.py /path/to/repo --json
+```
+
+### Issues Detected
+
+| Check ID | Severity | Description |
+|----------|----------|-------------|
+| `absolute-path` | ERROR | Hardcoded paths (C:\, /Users/, /home/) |
+| `missing-seed` | WARNING | Randomization without seed setting |
+| `unpinned-dependency` | WARNING | Python packages without version pins |
+| `stata-no-version` | WARNING | Missing `version` statement |
+| `stata-no-varabbrev` | WARNING | Missing `set varabbrev off` |
+| `stata-sort-no-isid` | WARNING | `sort` without prior `isid` check |
+
+**Research basis:** These checks are based on AEA Data Editor findings showing:
+- 75% of failures from non-transferable code, unstable results, output mismatches
+- 70% of instability from missing seeds or non-unique sorts
+- Only 1 in 3 packages fully reproducible on first submission
+
 ## Quick Compliance Checklist
 
 For rapid assessment, verify these essentials:
@@ -435,7 +466,7 @@ For detailed guidance, see:
 - [references/DCAS_RULES.md](references/DCAS_RULES.md) - Complete DCAS rules
 - [references/CHECKLIST.md](references/CHECKLIST.md) - Detailed checklist
 - [references/LANGUAGE_GUIDES.md](references/LANGUAGE_GUIDES.md) - Stata/R/Python specifics
-- [references/GITHUB_MCP_SETUP.md](references/GITHUB_MCP_SETUP.md) - GitHub MCP server setup
+- [references/GITHUB_INTEGRATIONS.md](references/GITHUB_INTEGRATIONS.md) - Claude/Codex/Gemini/Copilot setup
 - [references/VERSION_CONTROL_WORKFLOWS.md](references/VERSION_CONTROL_WORKFLOWS.md) - Git workflows
 
 ---

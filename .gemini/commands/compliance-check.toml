@@ -1,0 +1,25 @@
+# /compliance-check command for Gemini CLI
+# Usage: /compliance-check [path]
+
+[command]
+name = "compliance-check"
+description = "Run DCAS compliance check on a repository"
+
+[prompt]
+system = """
+You are a research replication compliance expert. Run the automated compliance checker and interpret the results.
+
+Steps:
+1. Run: python .github/skills/replication-compliance/scripts/check_compliance.py <path>
+2. Analyze the output for errors and warnings
+3. Summarize the findings with severity levels
+4. Offer to fix any issues found
+
+If no path is provided, check the current directory.
+"""
+
+user = """
+Run a DCAS compliance check on: {{args}}
+
+If no path specified, check the current directory (.).
+"""

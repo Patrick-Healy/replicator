@@ -7,22 +7,42 @@ Data and Code Availability Standard (DCAS) v1.0.
 
 Usage:
     python check_compliance.py /path/to/repo
-    python check_compliance.py .  # Current directory
+    python check_compliance.py /path/to/repo --json     # JSON output
+    python check_compliance.py /path/to/repo --save     # Save report
 """
 
 import os
 import sys
 import re
 import json
+import argparse
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Tuple, Optional
+from dataclasses import dataclass, asdict
 
-# Status indicators
+# Severity levels
+ERROR = "ERROR"      # Will almost certainly cause replication failure
+WARNING = "WARNING"  # Risk to reproducibility or violates best practices
+INFO = "INFO"        # Informational note
+
+# Display indicators
 PASS = "✅"
 WARN = "⚠️"
 FAIL = "❌"
 NA = "N/A"
+
+
+@dataclass
+class CodeIssue:
+    """Represents a code-level issue found in a file."""
+    file: str
+    line: int
+    severity: str
+    check_id: str
+    message: str
+    code: str = ""
+    suggestion: str = ""
 
 
 def find_files(root: Path, patterns: List[str]) -> List[Path]:
@@ -81,6 +101,258 @@ def detect_all_languages(root: Path) -> List[str]:
     if find_files(root, ['*.jl']):
         languages.append('julia')
     return languages if languages else ['unknown']
+
+
+# =============================================================================
+# CODE-LEVEL CHECKS (Based on AEA/Social Science Data Editors research)
+# These detect issues that cause 75% of replication failures
+# =============================================================================
+
+# Regex patterns for detecting issues
+ABSOLUTE_PATH_PATTERNS = [
+    (r'["\'][A-Za-z]:\\[^"\']+["\']', 'Windows absolute path'),  # C:\Users\...
+    (r'["\']\/Users\/[^"\']+["\']', 'macOS absolute path'),       # /Users/...
+    (r'["\']\/home\/[^"\']+["\']', 'Linux absolute path'),        # /home/...
+    (r'["\']~\/[^"\']+["\']', 'Home directory path'),              # ~/...
+]
+
+SEED_PATTERNS = {
+    'stata': [
+        (r'^\s*set\s+seed\s+\d+', 'set seed'),
+    ],
+    'r': [
+        (r'set\.seed\s*\(', 'set.seed()'),
+    ],
+    'python': [
+        (r'random\.seed\s*\(', 'random.seed()'),
+        (r'np\.random\.seed\s*\(', 'np.random.seed()'),
+        (r'numpy\.random\.seed\s*\(', 'numpy.random.seed()'),
+        (r'torch\.manual_seed\s*\(', 'torch.manual_seed()'),
+        (r'tf\.random\.set_seed\s*\(', 'tf.random.set_seed()'),
+    ],
+    'matlab': [
+        (r'rng\s*\(', 'rng()'),
+    ],
+    'julia': [
+        (r'Random\.seed!\s*\(', 'Random.seed!()'),
+    ],
+}
+
+RANDOMIZATION_INDICATORS = {
+    'stata': ['sample', 'bootstrap', 'permute', 'simulate', 'shuffle', 'random'],
+    'r': ['sample', 'rnorm', 'runif', 'rbinom', 'boot', 'shuffle', 'random'],
+    'python': ['random', 'shuffle', 'sample', 'choice', 'randint', 'randn', 'normal'],
+    'matlab': ['rand', 'randn', 'randi', 'randperm', 'datasample'],
+    'julia': ['rand', 'randn', 'shuffle', 'sample'],
+}
+
+
+def check_absolute_paths(root: Path) -> List[CodeIssue]:
+    """Check for hardcoded absolute paths (ERROR: causes replication failure)."""
+    issues = []
+    code_extensions = ['*.do', '*.R', '*.r', '*.Rmd', '*.py', '*.m', '*.jl']
+
+    for ext in code_extensions:
+        for file_path in root.rglob(ext):
+            if '.git' in str(file_path):
+                continue
+            try:
+                content = file_path.read_text(errors='ignore')
+                lines = content.split('\n')
+                for line_num, line in enumerate(lines, 1):
+                    # Skip comments
+                    stripped = line.strip()
+                    if stripped.startswith(('#', '*', '//', '%', '--')):
+                        continue
+
+                    for pattern, desc in ABSOLUTE_PATH_PATTERNS:
+                        matches = re.findall(pattern, line, re.IGNORECASE)
+                        for match in matches:
+                            issues.append(CodeIssue(
+                                file=str(file_path.relative_to(root)),
+                                line=line_num,
+                                severity=ERROR,
+                                check_id='absolute-path',
+                                message=f'{desc} detected',
+                                code=line.strip()[:100],
+                                suggestion='Use relative paths or global/environment variables for portability'
+                            ))
+            except (OSError, UnicodeDecodeError):
+                pass
+
+    return issues
+
+
+def check_random_seeds(root: Path, language: str) -> List[CodeIssue]:
+    """Check for missing random seeds (WARNING: 70% of instability)."""
+    issues = []
+
+    ext_map = {
+        'stata': ['*.do'],
+        'r': ['*.R', '*.r', '*.Rmd'],
+        'python': ['*.py'],
+        'matlab': ['*.m'],
+        'julia': ['*.jl'],
+    }
+
+    if language not in ext_map:
+        return issues
+
+    seed_patterns = SEED_PATTERNS.get(language, [])
+    random_indicators = RANDOMIZATION_INDICATORS.get(language, [])
+
+    for ext in ext_map[language]:
+        for file_path in root.rglob(ext):
+            if '.git' in str(file_path):
+                continue
+            try:
+                content = file_path.read_text(errors='ignore')
+                content_lower = content.lower()
+
+                # Check if file uses randomization
+                uses_random = any(ind in content_lower for ind in random_indicators)
+                if not uses_random:
+                    continue
+
+                # Check if seed is set
+                has_seed = any(re.search(pattern, content, re.IGNORECASE | re.MULTILINE)
+                              for pattern, _ in seed_patterns)
+
+                if not has_seed:
+                    issues.append(CodeIssue(
+                        file=str(file_path.relative_to(root)),
+                        line=0,
+                        severity=WARNING,
+                        check_id='missing-seed',
+                        message='File uses randomization but no seed is set',
+                        suggestion=f'Add seed setting at top of file for reproducibility'
+                    ))
+            except (OSError, UnicodeDecodeError):
+                pass
+
+    return issues
+
+
+def check_stata_specific(root: Path) -> List[CodeIssue]:
+    """Stata-specific checks for reproducibility."""
+    issues = []
+
+    for file_path in root.rglob('*.do'):
+        if '.git' in str(file_path):
+            continue
+        try:
+            content = file_path.read_text(errors='ignore')
+            lines = content.split('\n')
+            rel_path = str(file_path.relative_to(root))
+
+            # Check for version statement (should be near top)
+            has_version = bool(re.search(r'^\s*version\s+\d+', content, re.MULTILINE | re.IGNORECASE))
+            if not has_version and len(content) > 100:  # Skip tiny files
+                issues.append(CodeIssue(
+                    file=rel_path,
+                    line=1,
+                    severity=WARNING,
+                    check_id='stata-no-version',
+                    message="'version' statement not found",
+                    suggestion="Add 'version 17' (or appropriate version) at top for compatibility"
+                ))
+
+            # Check for set varabbrev off
+            has_varabbrev = bool(re.search(r'^\s*set\s+varabbrev\s+off', content, re.MULTILINE | re.IGNORECASE))
+            if not has_varabbrev and len(content) > 500:  # Only check substantial files
+                issues.append(CodeIssue(
+                    file=rel_path,
+                    line=1,
+                    severity=WARNING,
+                    check_id='stata-no-varabbrev',
+                    message="'set varabbrev off' not found",
+                    suggestion="Add 'set varabbrev off' to prevent variable abbreviation errors"
+                ))
+
+            # Check for sort without isid
+            for line_num, line in enumerate(lines, 1):
+                stripped = line.strip().lower()
+                if stripped.startswith('*') or stripped.startswith('//'):
+                    continue
+
+                # Look for sort commands
+                if re.match(r'^\s*sort\s+\w', line, re.IGNORECASE):
+                    # Check previous 10 lines for isid
+                    start = max(0, line_num - 11)
+                    prev_lines = '\n'.join(lines[start:line_num-1])
+                    if not re.search(r'\bisid\b', prev_lines, re.IGNORECASE):
+                        issues.append(CodeIssue(
+                            file=rel_path,
+                            line=line_num,
+                            severity=WARNING,
+                            check_id='stata-sort-no-isid',
+                            message="'sort' without prior 'isid' check",
+                            code=line.strip()[:80],
+                            suggestion="Run 'isid varlist' before sorting to ensure unique identifiers"
+                        ))
+
+        except (OSError, UnicodeDecodeError):
+            pass
+
+    return issues
+
+
+def check_python_requirements(root: Path) -> List[CodeIssue]:
+    """Check Python requirements.txt for unpinned versions."""
+    issues = []
+
+    req_files = find_files(root, ['requirements.txt'])
+    for req_path in req_files:
+        try:
+            content = req_path.read_text(errors='ignore')
+            lines = content.split('\n')
+            rel_path = str(req_path.relative_to(root))
+
+            for line_num, line in enumerate(lines, 1):
+                stripped = line.strip()
+                if not stripped or stripped.startswith('#') or stripped.startswith('-'):
+                    continue
+
+                # Check for unpinned versions (no ==)
+                if '==' not in stripped and re.match(r'^[a-zA-Z0-9\-_]+', stripped):
+                    # Ignore lines with >= or other specifiers (they're partially pinned)
+                    if not any(op in stripped for op in ['>=', '<=', '~=', '!=']):
+                        issues.append(CodeIssue(
+                            file=rel_path,
+                            line=line_num,
+                            severity=WARNING,
+                            check_id='unpinned-dependency',
+                            message='Unpinned dependency',
+                            code=stripped,
+                            suggestion='Pin version with == (e.g., pandas==2.1.4) for reproducibility'
+                        ))
+        except (OSError, UnicodeDecodeError):
+            pass
+
+    return issues
+
+
+def run_code_level_checks(root: Path) -> List[CodeIssue]:
+    """Run all code-level checks and return issues."""
+    all_issues = []
+    languages = detect_all_languages(root)
+
+    # Absolute paths (highest priority - ERROR)
+    all_issues.extend(check_absolute_paths(root))
+
+    # Random seeds (WARNING)
+    for lang in languages:
+        all_issues.extend(check_random_seeds(root, lang))
+
+    # Stata-specific
+    if 'stata' in languages:
+        all_issues.extend(check_stata_specific(root))
+
+    # Python requirements
+    if 'python' in languages:
+        all_issues.extend(check_python_requirements(root))
+
+    return all_issues
 
 
 def check_data_availability(root: Path) -> Dict:
@@ -485,7 +757,7 @@ def calculate_score(results: Dict) -> Tuple[int, int]:
     return passed, total
 
 
-def generate_report(root: Path) -> str:
+def generate_report(root: Path, include_json: bool = False) -> str:
     """Generate full compliance report."""
     language = detect_language(root)
     all_languages = detect_all_languages(root)
@@ -498,6 +770,11 @@ def generate_report(root: Path) -> str:
     lang_results = check_language_specific(root, language)
     large_file_results = check_large_files(root)
     confidential_results = check_confidential_data(root)
+
+    # Run code-level checks
+    code_issues = run_code_level_checks(root)
+    errors = [i for i in code_issues if i.severity == ERROR]
+    warnings = [i for i in code_issues if i.severity == WARNING]
 
     # Calculate scores
     data_score = calculate_score(data_results)
@@ -596,27 +873,150 @@ def generate_report(root: Path) -> str:
     if not critical and not important:
         report.append("No critical issues found. Review warnings above.\n")
 
+    # Code-Level Issues Section
+    if code_issues:
+        report.append("## Code-Level Issues\n")
+        report.append(f"Found **{len(errors)} errors** and **{len(warnings)} warnings** in source code.\n")
+
+        if errors:
+            report.append("### ❌ Errors (Will cause replication failure)\n")
+            for issue in errors:
+                report.append(f"**{issue.file}:{issue.line}** - {issue.message}")
+                if issue.code:
+                    report.append(f"```\n{issue.code}\n```")
+                report.append(f"*Fix:* {issue.suggestion}\n")
+
+        if warnings:
+            report.append("### ⚠️ Warnings (Risk to reproducibility)\n")
+            for issue in warnings[:10]:  # Limit to first 10
+                report.append(f"**{issue.file}:{issue.line}** - {issue.message}")
+                if issue.code:
+                    report.append(f"  - Code: `{issue.code}`")
+                report.append(f"  - *Fix:* {issue.suggestion}\n")
+
+            if len(warnings) > 10:
+                report.append(f"*...and {len(warnings) - 10} more warnings*\n")
+
     return '\n'.join(report)
 
 
+def generate_json_report(root: Path) -> Dict:
+    """Generate machine-readable JSON report."""
+    language = detect_language(root)
+    all_languages = detect_all_languages(root)
+
+    data_results = check_data_availability(root)
+    code_results = check_code(root)
+    support_results = check_supporting(root)
+    doc_results = check_documentation(root)
+    share_results = check_sharing(root)
+    lang_results = check_language_specific(root, language)
+
+    code_issues = run_code_level_checks(root)
+    errors = [i for i in code_issues if i.severity == ERROR]
+    warnings = [i for i in code_issues if i.severity == WARNING]
+
+    # Calculate scores
+    data_score = calculate_score(data_results)
+    code_score = calculate_score(code_results)
+    support_score = calculate_score(support_results)
+    doc_score = calculate_score(doc_results)
+    share_score = calculate_score(share_results)
+
+    total_passed = sum(s[0] for s in [data_score, code_score, support_score, doc_score, share_score])
+    total_possible = sum(s[1] for s in [data_score, code_score, support_score, doc_score, share_score])
+    percent = int(100 * total_passed / total_possible) if total_possible > 0 else 0
+
+    return {
+        "repository": root.name,
+        "path": str(root.absolute()),
+        "date": datetime.now().isoformat(),
+        "languages": all_languages,
+        "primary_language": language,
+        "standard": "DCAS v1.0",
+        "summary": {
+            "score": f"{total_passed}/{total_possible}",
+            "percent": percent,
+            "errors": len(errors),
+            "warnings": len(warnings),
+            "categories": {
+                "data_availability": {"score": f"{data_score[0]}/{data_score[1]}"},
+                "code": {"score": f"{code_score[0]}/{code_score[1]}"},
+                "supporting": {"score": f"{support_score[0]}/{support_score[1]}"},
+                "documentation": {"score": f"{doc_score[0]}/{doc_score[1]}"},
+                "sharing": {"score": f"{share_score[0]}/{share_score[1]}"},
+            }
+        },
+        "code_issues": [asdict(i) for i in code_issues],
+        "dcas_checks": {
+            "data_availability": data_results,
+            "code": code_results,
+            "supporting": support_results,
+            "documentation": doc_results,
+            "sharing": share_results,
+            f"{language}_specific": lang_results,
+        }
+    }
+
+
 def main():
-    if len(sys.argv) < 2:
-        print("Usage: python check_compliance.py /path/to/repo")
-        sys.exit(1)
+    parser = argparse.ArgumentParser(
+        description='Check research repository compliance with DCAS v1.0',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python check_compliance.py /path/to/repo
+  python check_compliance.py . --json
+  python check_compliance.py ./project --save
+  python check_compliance.py ./project --json --save
+        """
+    )
+    parser.add_argument('repo_path', help='Path to repository to check')
+    parser.add_argument('--json', action='store_true', help='Output as JSON')
+    parser.add_argument('--save', action='store_true', help='Save report to file')
+    parser.add_argument('--code-only', action='store_true', help='Only run code-level checks')
 
-    repo_path = Path(sys.argv[1]).resolve()
+    args = parser.parse_args()
+
+    repo_path = Path(args.repo_path).resolve()
     if not repo_path.exists():
-        print(f"Error: Path does not exist: {repo_path}")
+        print(f"Error: Path does not exist: {repo_path}", file=sys.stderr)
         sys.exit(1)
 
-    report = generate_report(repo_path)
-    print(report)
+    if args.code_only:
+        # Quick code-level scan only
+        issues = run_code_level_checks(repo_path)
+        if args.json:
+            output = json.dumps([asdict(i) for i in issues], indent=2)
+            print(output)
+        else:
+            errors = [i for i in issues if i.severity == ERROR]
+            warnings = [i for i in issues if i.severity == WARNING]
+            print(f"Code-Level Scan: {len(errors)} errors, {len(warnings)} warnings\n")
+            for issue in issues:
+                icon = FAIL if issue.severity == ERROR else WARN
+                print(f"{icon} {issue.file}:{issue.line} [{issue.check_id}]")
+                print(f"   {issue.message}")
+                if issue.code:
+                    print(f"   Code: {issue.code}")
+                print(f"   Fix: {issue.suggestion}\n")
+        sys.exit(1 if errors else 0)
 
-    # Optionally save report
-    if len(sys.argv) > 2 and sys.argv[2] == '--save':
-        output_path = repo_path / 'compliance_report.md'
-        output_path.write_text(report)
-        print(f"\nReport saved to: {output_path}")
+    if args.json:
+        report_data = generate_json_report(repo_path)
+        output = json.dumps(report_data, indent=2, default=str)
+        print(output)
+        if args.save:
+            output_path = repo_path / 'compliance_report.json'
+            output_path.write_text(output)
+            print(f"Report saved to: {output_path}", file=sys.stderr)
+    else:
+        report = generate_report(repo_path)
+        print(report)
+        if args.save:
+            output_path = repo_path / 'compliance_report.md'
+            output_path.write_text(report)
+            print(f"\nReport saved to: {output_path}")
 
 
 if __name__ == '__main__':

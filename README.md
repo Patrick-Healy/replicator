@@ -15,24 +15,27 @@ An [Agent Skill](https://agentskills.io) for auditing research repositories agai
 
 This skill follows the [Agent Skills standard](https://agentskills.io/specification) and works across multiple AI coding assistants:
 
-| Agent | How It Discovers the Skill |
-|-------|---------------------------|
-| **Claude Code** | Reads `.github/skills/` automatically |
-| **GitHub Copilot** | Reads `.github/skills/` + `.github/copilot-instructions.md` |
-| **OpenAI Codex CLI** | Reads `.github/skills/` automatically |
-| **Cursor** | Reads `.cursor/rules/*.mdc` with globs |
-| **Windsurf** | Reads `.windsurf/rules/*.md` |
-| **Any agent** | Point to `AGENTS.md` or `.github/skills/replication-compliance/SKILL.md` |
+| Agent | Skill Directory | GitHub Install | Context File |
+|-------|----------------|----------------|--------------|
+| **Gemini CLI** | `.gemini/skills/` | ✅ `gemini skills install <url>` | `GEMINI.md` |
+| **Cursor** | `.cursor/skills/` | ✅ Settings → Remote Rule | `.cursor/rules/` |
+| **OpenAI Codex** | `.agents/skills/` | ✅ `$skill-installer` | `AGENTS.md` |
+| **GitHub Copilot** | `.github/skills/` | ❌ Clone/copy | `.github/copilot-instructions.md` |
+| **Claude Code** | `.claude/skills/` | ❌ Clone/copy | `CLAUDE.md` |
+| **Windsurf** | `.windsurf/rules/` | ❌ Clone/copy | — |
 
-### Standards Used
+**Primary skill location:** `.github/skills/replication-compliance/` (Copilot standard, works with most tools)
 
-| Standard | File | Purpose |
-|----------|------|---------|
-| [Agent Skills](https://agentskills.io) | `.github/skills/replication-compliance/` | Primary skill definition |
-| [AGENTS.md](https://agents.md/) | `AGENTS.md` | Universal project context |
-| [Copilot Instructions](https://docs.github.com/en/copilot/customizing-copilot/adding-custom-instructions-for-github-copilot) | `.github/copilot-instructions.md` | GitHub Copilot bridge |
-| [Cursor Rules](https://cursor.com/docs/context/rules) | `.cursor/rules/*.mdc` | Cursor IDE (MDC format) |
-| [Windsurf Rules](https://docs.windsurf.com/windsurf/cascade/workflows) | `.windsurf/rules/*.md` | Windsurf IDE |
+### Standards & Documentation
+
+| Standard | Documentation | Purpose |
+|----------|---------------|---------|
+| [Agent Skills](https://agentskills.io) | [Specification](https://agentskills.io/specification) | SKILL.md format (portable across tools) |
+| [Copilot Skills](https://docs.github.com/en/copilot/concepts/agents/about-agent-skills) | [GitHub Docs](https://docs.github.com/en/copilot/concepts/agents/about-agent-skills) | `.github/skills/` discovery |
+| [Codex Skills](https://developers.openai.com/codex/skills/) | [OpenAI Docs](https://developers.openai.com/codex/skills/) | `.agents/skills/` + `$skill-installer` |
+| [Gemini Skills](https://geminicli.com/docs/cli/skills/) | [Gemini Docs](https://geminicli.com/docs/cli/skills/) | `.gemini/skills/` + CLI install |
+| [Claude Skills](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview) | [Anthropic Docs](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview) | `.claude/skills/` (filesystem) |
+| [Cursor Skills](https://cursor.com/docs/context/skills) | [Cursor Docs](https://cursor.com/docs/context/skills) | `.cursor/skills/` + Remote Rules |
 
 ---
 
@@ -47,33 +50,126 @@ The `replication-compliance` skill enables AI agents to:
 
 ---
 
-## Setup
+## Installation
 
-### Option 1: Clone this repository
+Choose the method for your AI tool. All tools use the same skill from `.github/skills/replication-compliance/`.
+
+### Gemini CLI (Recommended: Install from GitHub)
 
 ```bash
-git clone https://github.com/Patrick-Healy/replicator.git
+# Install directly from GitHub repository
+gemini skills install https://github.com/Patrick-Healy/replicator \
+  --path .github/skills/replication-compliance \
+  --scope user
+
+# Verify installation
+gemini skills list
 ```
 
-Most agents will auto-discover the skill. If not, point your agent to it:
+The skill is now available globally. Use `/skills` in any session to see it.
+
+### Cursor (Install from GitHub)
+
+1. Open **Cursor Settings** → **Rules**
+2. Click **Add Rule** → **Remote Rule (Github)**
+3. Enter: `https://github.com/Patrick-Healy/replicator`
+4. The skill auto-syncs from the repository
+
+### OpenAI Codex
+
+```
+# In a Codex session, use the skill-installer:
+$skill-installer install replication-compliance from Patrick-Healy/replicator
+```
+
+Or clone and symlink:
+```bash
+git clone https://github.com/Patrick-Healy/replicator.git
+ln -s $(pwd)/replicator/.github/skills/replication-compliance ~/.agents/skills/
+```
+
+### GitHub Copilot
+
+Copilot reads `.github/skills/` natively. Either:
+
+1. **Clone this repo** and work inside it
+2. **Copy the skill folder** into your project:
+   ```bash
+   # From your project root
+   mkdir -p .github/skills
+   cp -r /path/to/replicator/.github/skills/replication-compliance .github/skills/
+   ```
+
+### Claude Code (Filesystem only)
+
+Claude Code doesn't support GitHub URL installation. Copy the skill:
+
+```bash
+# Global installation (available in all projects)
+mkdir -p ~/.claude/skills
+cp -r /path/to/replicator/.github/skills/replication-compliance ~/.claude/skills/
+
+# Or project-level (available only in this project)
+mkdir -p .claude/skills
+cp -r /path/to/replicator/.github/skills/replication-compliance .claude/skills/
+```
+
+### Windsurf
+
+```bash
+mkdir -p .windsurf/rules
+cp /path/to/replicator/.github/skills/replication-compliance/SKILL.md \
+   .windsurf/rules/replication-compliance.md
+```
+
+### Any Agent (Manual)
+
+Point your agent to the skill directly:
 
 ```
 "Using the skill at .github/skills/replication-compliance/SKILL.md,
 audit my repository at /path/to/my-project for DCAS compliance"
 ```
 
-### Option 2: Copy just the skill folder
+---
 
-Copy `.github/skills/replication-compliance/` into your project's `.github/skills/` directory. The skill works standalone.
+## Gemini CLI Quick Start
 
-### Option 3: Reference remotely
+If you're using [Gemini CLI](https://github.com/google-gemini/gemini-cli):
 
-Some agents can fetch skills from URLs:
+### Option A: Install skill globally (recommended)
+
+```bash
+# Install skill from GitHub (one-time setup)
+gemini skills install https://github.com/Patrick-Healy/replicator \
+  --path .github/skills/replication-compliance \
+  --scope user
+
+# Now use it in any project
+cd /path/to/your/research-repo
+gemini
+> "Audit this repository for DCAS compliance"
+```
+
+### Option B: Clone and use locally
+
+```bash
+git clone https://github.com/Patrick-Healy/replicator.git
+cd replicator
+gemini
+```
+
+Gemini auto-reads `GEMINI.md` and discovers the skill. Use custom commands:
 
 ```
-"Use the replication-compliance skill from
-https://github.com/Patrick-Healy/replicator to audit this repo"
+/compliance-check ./lp_var_inference    # Quick automated scan
+/audit ./lp_var_inference               # Full DCAS audit with report
 ```
+
+**Files Gemini reads automatically:**
+- `.gemini/skills/` or `.github/skills/` - Skill discovery
+- `GEMINI.md` - Project context
+- `.gemini/commands/*.toml` - Custom `/compliance-check` and `/audit` commands
 
 ---
 
@@ -184,6 +280,27 @@ The skill classifies git commands by risk level:
 | Forbidden | `push --force origin main` | Never suggested |
 
 GitHub Desktop instructions included for GUI users.
+
+---
+
+## GitHub PR Review Integration
+
+Set up automatic compliance checking on pull requests with any of these AI tools:
+
+| Platform | Trigger | Setup |
+|----------|---------|-------|
+| **Claude Code** | `@claude review` | [claude-code-action](https://github.com/anthropics/claude-code-action) |
+| **OpenAI Codex** | `@codex review` | [codex-action](https://developers.openai.com/codex/github-action/) or [chatgpt.com/codex](https://chatgpt.com/codex) |
+| **Gemini CLI** | `@gemini-cli /review` | [run-gemini-cli](https://github.com/google-github-actions/run-gemini-cli) |
+| **GitHub Copilot** | `@copilot review` | Native (via repository rulesets) |
+
+Each tool reads the skill from `.github/skills/replication-compliance/SKILL.md` and checks PRs for:
+- Absolute paths that break portability
+- Missing random seeds
+- Unpinned dependencies
+- Documentation gaps
+
+**Full setup guide:** [`references/GITHUB_INTEGRATIONS.md`](.github/skills/replication-compliance/references/GITHUB_INTEGRATIONS.md)
 
 ---
 
