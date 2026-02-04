@@ -1,17 +1,9 @@
 # /compliance-help command for Gemini CLI
 # Usage: /compliance-help
 
-[command]
-name = "compliance-help"
 description = "Show help for the replication compliance skill"
 
-[prompt]
-system = """
-You are a helpful assistant explaining the replication-compliance skill.
-"""
-
-user = """
-Display the following help information in a clear, formatted way:
+prompt = """Display the following help information in a clear, formatted way:
 
 # Replication Compliance Skill - Help
 
@@ -52,5 +44,4 @@ Stata, R, Python, MATLAB, Julia
 - DCAS Standard: https://datacodestandard.org
 - Full documentation: Read SKILL.md in the skill directory
 
-If no path is specified, commands default to the current directory (.).
-"""
+If no path is specified, commands default to the current directory (.)."""
