@@ -2,6 +2,11 @@
 
 An [Agent Skill](https://agentskills.io) for auditing research repositories against the [Data and Code Availability Standard (DCAS)](https://datacodestandard.org).
 
+> **This repository contains three things:**
+> 1. The `replication-compliance` skill (audits any research repo)
+> 2. An example analysis on a published paper (`lp_var_inference/`)
+> 3. A blank template for new projects (`code/`, `data/`, `paper/`)
+
 **Repository:** https://github.com/Patrick-Healy/replicator
 
 ---
@@ -10,10 +15,33 @@ An [Agent Skill](https://agentskills.io) for auditing research repositories agai
 
 The `replication-compliance` skill enables AI agents to:
 
-1. **Scan any research repository** - Detects Stata, R, Python, MATLAB, Julia projects
-2. **Check DCAS compliance** - Audits against all 16 rules systematically
-3. **Generate actionable reports** - Prioritized recommendations with code examples
-4. **Guide version control** - Safe git workflows for researchers
+1. **Scan any research repository** - Reads files and folder structure to detect languages (Stata, R, Python, MATLAB, Julia) and key documents. Does not run your code unless explicitly asked.
+2. **Check DCAS compliance** - Audits against all 16 rules by checking for files, code patterns (e.g., `set.seed()`), and metadata.
+3. **Generate actionable reports** - Prioritized recommendations with code examples to fix gaps.
+4. **Guide version control** - Safe git workflows with dangerous commands flagged for manual execution.
+
+---
+
+## Setup
+
+### Option 1: Clone this repository
+
+```bash
+git clone https://github.com/Patrick-Healy/replicator.git
+```
+
+Then point your agent to the skill:
+
+```
+"Using the instructions in /path/to/replicator/replication-compliance/SKILL.md,
+audit my repository at /path/to/my-project for DCAS compliance"
+```
+
+### Option 2: Copy just the skill folder
+
+Copy `replication-compliance/` into your project or a shared location. The skill works standalone - the template folders (`code/`, `data/`, `paper/`) are not required.
+
+---
 
 ## Quick Start
 
@@ -25,7 +53,9 @@ With a compatible AI agent (Claude Code, Cursor, Windsurf, etc.):
 "Is my code ready for AEA submission?"
 ```
 
-The agent reads `replication-compliance/SKILL.md` and follows the audit workflow.
+The agent reads `SKILL.md` (the instruction file) and follows the audit workflow. You don't need to read `SKILL.md` yourself - just point the agent to it.
+
+**Note:** The skill can audit any repository structure. The included template is recommended but not required.
 
 ---
 
@@ -60,21 +90,31 @@ We tested the skill on [Montiel Olea et al. (2026)](https://github.com/ckwolf92/
 
 ---
 
-## Skill Structure
+## Skill Architecture
 
 ```
 replication-compliance/
-├── SKILL.md                      # Main skill instructions
+├── SKILL.md                      # Agent instructions: defines audit workflow
 ├── scripts/
-│   └── check_compliance.py       # Automated checker
+│   └── check_compliance.py       # Automated checker: fast file/pattern searches
 ├── references/
 │   ├── DCAS_RULES.md             # All 16 DCAS rules explained
-│   ├── LANGUAGE_GUIDES.md        # Stata, R, Python, MATLAB, Julia
-│   ├── VERSION_CONTROL_WORKFLOWS.md  # Git workflows (CLI + Desktop)
-│   └── GITHUB_MCP_SETUP.md       # GitHub MCP integration
+│   ├── LANGUAGE_GUIDES.md        # Stata, R, Python, MATLAB, Julia best practices
+│   ├── VERSION_CONTROL_WORKFLOWS.md  # Git workflows (CLI + GitHub Desktop)
+│   └── GITHUB_MCP_SETUP.md       # GitHub MCP server integration
 └── assets/
     └── report_template.md        # Report format template
 ```
+
+### How the Components Work Together
+
+| Component | Role |
+|-----------|------|
+| `SKILL.md` | High-level prompt defining the step-by-step audit workflow. The agent reads this to understand what to check and how to report findings. |
+| `check_compliance.py` | Python script the agent can run for fast automated checks (file existence, regex searches for seeds, license detection). Optional - agent can also check manually. |
+| `references/` | Supporting documentation the agent consults for language-specific guidance and DCAS rule details. |
+
+---
 
 ## DCAS Rules Covered
 
@@ -113,9 +153,9 @@ GitHub Desktop instructions included for GUI users.
 
 ---
 
-## Template Files
+## Template Files (Optional)
 
-This repo also includes the SoDa Replicator template structure:
+This repo includes a best-practice project structure from SoDa Labs. **Use of this template is recommended but not required** - the skill can audit any repository structure.
 
 ```
 code/           # Analysis code with master scripts (run.do, run.R)
@@ -125,6 +165,26 @@ documents/      # Ethics, instruments
 ```
 
 See [`code/README_TEMPLATE.md`](code/README_TEMPLATE.md) for the Social Science Data Editors README schema.
+
+---
+
+## Contributing
+
+Contributions to improve the skill are welcome.
+
+### To add a new compliance check:
+1. Add the logic to the workflow in `SKILL.md`
+2. If automatable, add a function to `scripts/check_compliance.py`
+3. Test by running a full audit on an example repository
+
+### To add a new language:
+1. Add a section to `references/LANGUAGE_GUIDES.md`
+2. Update detection logic in `check_compliance.py`
+3. Add language-specific checks to `SKILL.md`
+
+### To improve documentation:
+- `references/DCAS_RULES.md` - Rule explanations and examples
+- `references/VERSION_CONTROL_WORKFLOWS.md` - Git guidance
 
 ---
 
