@@ -15,14 +15,14 @@ An [Agent Skill](https://agentskills.io) for auditing research repositories agai
 
 This skill follows the [Agent Skills standard](https://agentskills.io/specification) and works across multiple AI coding assistants:
 
-| Agent | Skill Directory | GitHub Install | Context File |
-|-------|----------------|----------------|--------------|
-| **Gemini CLI** | `.gemini/skills/` | ✅ `gemini skills install <url>` | `GEMINI.md` |
-| **Cursor** | `.cursor/skills/` | ✅ Settings → Remote Rule | `.cursor/rules/` |
-| **OpenAI Codex** | `.agents/skills/` | ✅ `$skill-installer` | `AGENTS.md` |
-| **GitHub Copilot** | `.github/skills/` | ❌ Clone/copy | `.github/copilot-instructions.md` |
-| **Claude Code** | `.claude/skills/` | ❌ Clone/copy | `CLAUDE.md` |
-| **Windsurf** | `.windsurf/rules/` | ❌ Clone/copy | — |
+| Agent | Discovery Method | Context File |
+|-------|-----------------|--------------|
+| **Gemini CLI** | Reads `GEMINI.md` + `.gemini/commands/` | `GEMINI.md` |
+| **Cursor** | Settings → Rules → Remote Rule (GitHub URL) | `.cursor/rules/` |
+| **OpenAI Codex** | Reads `AGENTS.md` + `.agents/skills/` | `AGENTS.md` |
+| **GitHub Copilot** | Reads `.github/skills/` automatically | `.github/copilot-instructions.md` |
+| **Claude Code** | Reads `CLAUDE.md` + `.claude/skills/` | `CLAUDE.md` |
+| **Windsurf** | Reads `.windsurf/rules/` | — |
 
 **Primary skill location:** `.github/skills/replication-compliance/` (Copilot standard, works with most tools)
 
@@ -54,19 +54,24 @@ The `replication-compliance` skill enables AI agents to:
 
 Choose the method for your AI tool. All tools use the same skill from `.github/skills/replication-compliance/`.
 
-### Gemini CLI (Recommended: Install from GitHub)
+### Gemini CLI
+
+Clone the repo and run Gemini from inside it:
 
 ```bash
-# Install directly from GitHub repository
-gemini skills install https://github.com/Patrick-Healy/replicator \
-  --path .github/skills/replication-compliance \
-  --scope user
-
-# Verify installation
-gemini skills list
+git clone https://github.com/Patrick-Healy/replicator.git
+cd replicator
+gemini
 ```
 
-The skill is now available globally. Use `/skills` in any session to see it.
+Gemini automatically reads `GEMINI.md` and `.gemini/commands/`. Use:
+
+```
+/compliance-check ./lp_var_inference
+/audit ./lp_var_inference
+```
+
+Or ask naturally: `"Audit this repo for DCAS compliance"`
 
 ### Cursor (Install from GitHub)
 
@@ -137,38 +142,31 @@ audit my repository at /path/to/my-project for DCAS compliance"
 
 If you're using [Gemini CLI](https://github.com/google-gemini/gemini-cli):
 
-### Option A: Install skill globally (recommended)
-
 ```bash
-# Install skill from GitHub (one-time setup)
-gemini skills install https://github.com/Patrick-Healy/replicator \
-  --path .github/skills/replication-compliance \
-  --scope user
-
-# Now use it in any project
-cd /path/to/your/research-repo
-gemini
-> "Audit this repository for DCAS compliance"
-```
-
-### Option B: Clone and use locally
-
-```bash
+# Clone and enter the repo
 git clone https://github.com/Patrick-Healy/replicator.git
 cd replicator
+
+# Start Gemini CLI
 gemini
 ```
 
-Gemini auto-reads `GEMINI.md` and discovers the skill. Use custom commands:
+Gemini automatically reads `GEMINI.md` and loads the custom commands. Use:
 
 ```
 /compliance-check ./lp_var_inference    # Quick automated scan
 /audit ./lp_var_inference               # Full DCAS audit with report
 ```
 
+Or ask naturally:
+
+```
+"Audit the lp_var_inference folder for DCAS compliance"
+"Check this repo for replication issues"
+```
+
 **Files Gemini reads automatically:**
-- `.gemini/skills/` or `.github/skills/` - Skill discovery
-- `GEMINI.md` - Project context
+- `GEMINI.md` - Project context with skill instructions
 - `.gemini/commands/*.toml` - Custom `/compliance-check` and `/audit` commands
 
 ---
