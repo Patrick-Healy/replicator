@@ -4,9 +4,10 @@ description: Audit research repositories against the Data and Code Availability 
 license: MIT
 metadata:
   author: sodalabsio
-  version: "1.0"
+  version: "1.1"
   standard: DCAS v1.0
-compatibility: Requires file system access. Works with Stata, R, and Python projects.
+compatibility: Requires file system access. Works with Stata, R, Python, MATLAB, and Julia projects.
+allowed-tools: Read Glob Grep Bash(ls:*) Bash(find:*) Bash(cat:*) Bash(head:*)
 ---
 
 # Replication Compliance Checker
@@ -439,269 +440,20 @@ For detailed guidance, see:
 
 ---
 
-## GitHub Integration & Version Control
+## Version Control Safety
 
-### GitHub MCP Server
+**CRITICAL:** Follow these safety rules for git operations.
 
-For enhanced GitHub integration, users can set up the [GitHub MCP Server](https://github.com/github/github-mcp-server). See [references/GITHUB_MCP_SETUP.md](references/GITHUB_MCP_SETUP.md) for complete setup instructions.
+| Level | Commands | Action |
+|-------|----------|--------|
+| 🟢 Safe | `git status`, `log`, `diff`, `branch -a` | Execute freely |
+| 🟡 Moderate | `git add`, `commit`, `checkout -b` | Confirm first |
+| 🔴 Dangerous | `push`, `merge`, `rebase`, `tag` | User runs manually |
+| ⛔ Forbidden | `push --force`, `reset --hard`, `clean -fd` | Never execute |
 
-### Command Safety Classification
+For dangerous commands, provide the command but don't execute:
+> "To push these changes, run: `git push origin main`"
 
-**CRITICAL: The agent must follow these safety rules for all git/GitHub operations.**
+**Full details:** See [references/VERSION_CONTROL_WORKFLOWS.md](references/VERSION_CONTROL_WORKFLOWS.md)
 
-#### 🟢 SAFE - Agent Can Execute Freely
-
-```bash
-# Read-only operations
-git status
-git log --oneline -10
-git diff
-git branch -a
-gh repo view
-gh issue list
-gh pr list
-gh pr view <number>
-```
-
-#### 🟡 MODERATE - Agent Should Confirm Before Executing
-
-```bash
-# These make changes but are generally reversible
-git add <specific-file>
-git commit -m "message"
-git checkout -b new-branch
-git stash
-gh issue create --title "..." --body "..."
-gh pr create --title "..." --body "..."
-```
-
-Before executing moderate commands, say:
-> "I'm about to [action]. This will [effect]. Should I proceed?"
-
-#### 🔴 DANGEROUS - Provide Command, User Executes Manually
-
-**NEVER execute these commands. Always provide them for the user to run.**
-
-```bash
-# Pushing to main/master
-git push origin main
-# Say: "To push these changes, run: git push origin main"
-
-# Merging (local or PR)
-git merge <branch>
-gh pr merge <number>
-# Say: "To merge this PR, run: gh pr merge <number> --merge"
-
-# Rebasing (rewrites history)
-git rebase main
-git rebase -i HEAD~3
-# Say: "Rebasing rewrites history. To proceed, run: git rebase main"
-
-# Deleting branches
-git branch -d <branch>          # Safe: only if merged
-git branch -D <branch>          # Force delete - can lose work
-git push origin --delete <branch>
-# Say: "To delete this branch, run: git branch -d <branch>"
-
-# Closing issues/PRs
-gh issue close <number>
-gh pr close <number>
-# Say: "To close this issue, run: gh issue close <number>"
-
-# Tagging releases
-git tag -a v1.0 -m "message"
-git push origin v1.0
-# Say: "To create this release tag, run: git tag -a v1.0 -m '...'"
-```
-
-#### ⛔ FORBIDDEN - Never Execute or Suggest
-
-```bash
-# Force push - can destroy collaborators' work
-git push --force
-git push -f
-git push --force-with-lease  # Still dangerous
-
-# Hard reset - loses uncommitted work
-git reset --hard
-git reset --hard HEAD~N
-git checkout -- .            # Discards all changes
-
-# Clean - removes untracked files permanently
-git clean -fd
-git clean -fdx               # Also removes ignored files
-
-# Repository deletion
-gh repo delete
-
-# Modifying permissions/settings
-gh api repos/{owner}/{repo}/collaborators
-gh repo edit --visibility
-
-# Rewriting published history
-git filter-branch
-git rebase on pushed commits
-```
-
-If user requests forbidden commands, explain the risk:
-> "Force pushing can overwrite your collaborators' work and is generally not recommended. If you need to update a branch, consider `git revert` instead, which is safer."
-
-### Version Control for Replication Packages
-
-#### Check Version Control Status
-
-```bash
-# Safe to run
-git status
-git log --oneline -5
-git remote -v
-```
-
-#### DCAS Rule 14: Archive Location
-
-Help users prepare for archiving:
-
-```bash
-# Safe: Create tag for submission version
-# SAY: "To tag this version for submission, run:"
-git tag -a v1.0-submission -m "Version submitted to [Journal]"
-git push origin v1.0-submission
-
-# Safe: View existing releases
-gh release list
-
-# PROVIDE (don't execute): Create release
-# SAY: "To create a GitHub release, run:"
-gh release create v1.0 --title "Replication Package v1.0" --notes "..."
-```
-
-#### DCAS Rule 15: License Check
-
-```bash
-# Safe: Check for license
-cat LICENSE 2>/dev/null || echo "No LICENSE file found"
-
-# If missing, provide template:
-# SAY: "You need a LICENSE file. Download the AEA template from:
-# https://github.com/AEADataEditor/aea-de-guidance/blob/master/template-LICENSE.md"
-```
-
-### GitHub Workflow Recommendations
-
-When suggesting git operations, always:
-
-1. **Explain what the command does**
-2. **State the risk level**
-3. **For dangerous commands, provide the command but don't execute**
-
-Example response for PR workflow:
-
-> I've reviewed the changes and they look ready for submission. Here's what to do:
->
-> 1. **Create a PR** (I can do this for you):
->    ```bash
->    gh pr create --title "Add robustness checks" --body "..."
->    ```
->
-> 2. **After review, merge the PR** (you must run this manually):
->    ```bash
->    gh pr merge <number> --merge
->    ```
->
-> 3. **Tag the release** (you must run this manually):
->    ```bash
->    git tag -a v1.0 -m "Submission version"
->    git push origin v1.0
->    ```
->
-> Should I create the PR?
-
-### Setting Up GitHub MCP (User Guide)
-
-If the user asks about GitHub MCP setup, provide this summary:
-
-**Option A: Docker (Recommended - Safest)**
-
-```json
-{
-  "mcpServers": {
-    "github": {
-      "command": "docker",
-      "args": [
-        "run", "-i", "--rm",
-        "-e", "GITHUB_PERSONAL_ACCESS_TOKEN",
-        "ghcr.io/github/github-mcp-server",
-        "--read-only"
-      ]
-    }
-  }
-}
-```
-
-**Option B: Non-Docker (When Docker Unavailable)**
-
-⚠️ **Risk Warning:** Non-Docker runs with your user permissions without container isolation. Only use if Docker is not available.
-
-```json
-{
-  "mcpServers": {
-    "github": {
-      "command": "${HOME}/.local/bin/github-mcp-server",
-      "args": ["stdio", "--read-only"],
-      "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
-      }
-    }
-  }
-}
-```
-
-Build instructions:
-```bash
-git clone https://github.com/github/github-mcp-server.git
-cd github-mcp-server
-go build -o ~/.local/bin/github-mcp-server ./cmd/github-mcp-server
-```
-
-**Option C: No MCP - Use gh CLI Directly**
-
-For simple operations, the `gh` CLI works without MCP:
-
-```bash
-gh auth login
-gh repo view
-gh pr list
-gh issue create --title "..." --body "..."
-```
-
-**Option D: GitHub Desktop (GUI - No Command Line)**
-
-For users who prefer visual interfaces:
-
-1. Download: https://desktop.github.com/
-2. Sign in with GitHub account
-3. Clone repositories visually
-4. Commit, push, pull with buttons
-
-**GitHub Desktop equivalents:**
-| Command | GitHub Desktop |
-|---------|----------------|
-| `git status` | View Changes panel |
-| `git add` | Check file boxes |
-| `git commit` | Write message → Commit |
-| `git push` | Push origin button |
-| `git pull` | Fetch → Pull origin |
-| `gh pr create` | "Create Pull Request" button |
-
-⚠️ **Limitations:** Cannot create tags, limited merge tools. See [VERSION_CONTROL_WORKFLOWS.md](references/VERSION_CONTROL_WORKFLOWS.md) for details.
-
-**Security Checklist (All Options):**
-- [ ] Use fine-grained Personal Access Token (not classic)
-- [ ] Grant minimum necessary permissions
-- [ ] Set token expiration (90 days recommended)
-- [ ] Store token in environment variable, not config file
-- [ ] Set file permissions: `chmod 600` on token files
-- [ ] Add token files to .gitignore
-- [ ] Always use `--read-only` mode unless writes needed
-
-See [references/GITHUB_MCP_SETUP.md](references/GITHUB_MCP_SETUP.md) for complete instructions including risk comparison table.
+**MCP setup:** See [references/GITHUB_MCP_SETUP.md](references/GITHUB_MCP_SETUP.md)

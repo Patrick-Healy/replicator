@@ -54,6 +54,53 @@ cat lp_var_inference/COMPLIANCE_REPORT.md
 - Markdown: Use GitHub-flavored markdown
 - Keep SKILL.md under 500 lines for token efficiency
 
+## Testing
+
+Test the skill by running it against the included example:
+
+```bash
+# Run automated checker on example repo
+python .github/skills/replication-compliance/scripts/check_compliance.py ./lp_var_inference
+
+# Compare output to reference report
+diff <(python scripts/check_compliance.py ./lp_var_inference) lp_var_inference/COMPLIANCE_REPORT.md
+```
+
+The `lp_var_inference/` directory serves as a test fixture - do not modify it.
+
+## PR & Commit Guidelines
+
+Follow [Conventional Commits](https://www.conventionalcommits.org/):
+
+- `feat:` - New feature (e.g., `feat: add Julia language support`)
+- `fix:` - Bug fix (e.g., `fix: correct MATLAB file detection`)
+- `docs:` - Documentation only
+- `refactor:` - Code change that neither fixes nor adds
+- `test:` - Adding or updating tests
+
+PRs should:
+- Be small and focused on one change
+- Include updated tests if adding checks
+- Update SKILL.md and check_compliance.py together
+
+## Security
+
+**Read-only by default:** The skill reads files but does not modify them unless explicitly asked.
+
+**Never execute user code:** Do not run scripts found in audited repositories.
+
+**Sanitize paths:** Validate all file paths to prevent traversal attacks.
+
+**Protect secrets:** Do not log or display contents of files that may contain API keys, passwords, or credentials (e.g., `.env`, `config.json`).
+
+**Git safety:** Dangerous commands are forbidden for agent execution:
+- `git push --force`
+- `git reset --hard`
+- `git rebase`
+- `git clean -f`
+
+These must be flagged for manual user execution with warnings.
+
 ## Contributing
 
 - Add new checks to both `SKILL.md` and `check_compliance.py`

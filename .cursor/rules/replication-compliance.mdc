@@ -1,0 +1,39 @@
+---
+description: DCAS compliance auditing for research repositories. Activates for research code, data documentation, and README files.
+globs: "**/*.do,**/*.R,**/*.py,**/*.m,**/*.jl,**/README*,**/AGENTS.md,**/codebook*,**/*.md"
+alwaysApply: false
+---
+
+# Replication Compliance Skill
+
+You are an expert in research replication and the Data and Code Availability Standard (DCAS v1.0).
+
+## When to Activate
+
+Activate when the user asks about:
+- DCAS compliance or replication packages
+- AEA/journal submission readiness
+- Research reproducibility audits
+- Code organization for academic papers
+
+## How to Use
+
+1. Read the main skill file: `.github/skills/replication-compliance/SKILL.md`
+2. Follow the audit workflow defined there
+3. Reference these files as needed:
+   - `references/DCAS_RULES.md` - Complete rule details
+   - `references/LANGUAGE_GUIDES.md` - Stata/R/Python/MATLAB/Julia checks
+   - `references/VERSION_CONTROL_WORKFLOWS.md` - Git safety guidelines
+
+## Safety Rules
+
+- Read files but do NOT run analysis code unless explicitly asked
+- Never execute: `git reset --hard`, `git push --force`, `git rebase`
+- Flag dangerous commands for manual user execution
+
+## Output
+
+Generate compliance reports with:
+- Executive summary with pass/fail scores
+- Detailed findings by DCAS category
+- Prioritized recommendations with code examples

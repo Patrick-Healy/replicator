@@ -20,8 +20,8 @@ This skill follows the [Agent Skills standard](https://agentskills.io/specificat
 | **Claude Code** | Reads `.github/skills/` automatically |
 | **GitHub Copilot** | Reads `.github/skills/` + `.github/copilot-instructions.md` |
 | **OpenAI Codex CLI** | Reads `.github/skills/` automatically |
-| **Cursor** | Reads `.cursorrules` bridge → skill |
-| **Windsurf** | Reads `.windsurfrules` bridge → skill |
+| **Cursor** | Reads `.cursor/rules/*.mdc` with globs |
+| **Windsurf** | Reads `.windsurf/rules/*.md` |
 | **Any agent** | Point to `AGENTS.md` or `.github/skills/replication-compliance/SKILL.md` |
 
 ### Standards Used
@@ -31,8 +31,8 @@ This skill follows the [Agent Skills standard](https://agentskills.io/specificat
 | [Agent Skills](https://agentskills.io) | `.github/skills/replication-compliance/` | Primary skill definition |
 | [AGENTS.md](https://agents.md/) | `AGENTS.md` | Universal project context |
 | [Copilot Instructions](https://docs.github.com/en/copilot/customizing-copilot/adding-custom-instructions-for-github-copilot) | `.github/copilot-instructions.md` | GitHub Copilot bridge |
-| [Cursor Rules](https://docs.cursor.com/context/rules-for-ai) | `.cursorrules` | Cursor IDE bridge |
-| [Windsurf Rules](https://docs.windsurf.com/windsurf/cascade/workflows) | `.windsurfrules` | Windsurf IDE bridge |
+| [Cursor Rules](https://cursor.com/docs/context/rules) | `.cursor/rules/*.mdc` | Cursor IDE (MDC format) |
+| [Windsurf Rules](https://docs.windsurf.com/windsurf/cascade/workflows) | `.windsurf/rules/*.md` | Windsurf IDE |
 
 ---
 
