@@ -2,8 +2,13 @@
 #
 # install.sh: Installer for the Replication Compliance Skill
 #
-# Detects supported AI coding assistants and installs the skill globally.
+# Detects supported AI coding assistants and installs/updates the skill globally.
 # Run from the root of the replicator repository.
+#
+# Usage:
+#   ./install.sh           # Install or update
+#   ./install.sh --update  # Update from GitHub (auto-downloads latest)
+#   ./install.sh --check   # Check for updates without installing
 #
 
 set -e
@@ -11,7 +16,9 @@ set -e
 # --- Configuration ---
 SKILL_NAME="replication-compliance"
 SOURCE_SKILL_DIR=".github/skills/replication-compliance"
+REPO_URL="https://github.com/Patrick-Healy/replicator"
 REPO_ROOT="$(cd "$(dirname "$0")" && pwd)"
+VERSION="1.2"  # Update this when releasing new versions
 
 # --- Colors ---
 RED='\033[0;31m'
@@ -27,6 +34,52 @@ echo_bold() { echo -e "${BOLD}$1${NC}"; }
 
 # Track what was installed
 INSTALLED_TOOLS=()
+UPDATED_TOOLS=()
+
+# --- Update Functions ---
+
+check_for_updates() {
+    echo_bold "Checking for updates..."
+
+    # Get latest version from GitHub
+    LATEST_VERSION=$(curl -s "https://raw.githubusercontent.com/Patrick-Healy/replicator/main/install.sh" | grep "^VERSION=" | cut -d'"' -f2 2>/dev/null || echo "unknown")
+
+    echo "  Current version: $VERSION"
+    echo "  Latest version:  $LATEST_VERSION"
+
+    if [ "$LATEST_VERSION" != "unknown" ] && [ "$LATEST_VERSION" != "$VERSION" ]; then
+        echo_yellow "  Update available!"
+        return 0
+    else
+        echo_green "  You have the latest version."
+        return 1
+    fi
+}
+
+update_from_github() {
+    echo_bold "Updating from GitHub..."
+
+    TEMP_DIR=$(mktemp -d)
+
+    echo "  -> Cloning latest version..."
+    git clone --depth 1 "$REPO_URL.git" "$TEMP_DIR/replicator" 2>/dev/null
+
+    if [ ! -d "$TEMP_DIR/replicator" ]; then
+        echo_red "  Error: Failed to clone repository"
+        rm -rf "$TEMP_DIR"
+        exit 1
+    fi
+
+    echo "  -> Running installer..."
+    cd "$TEMP_DIR/replicator"
+    ./install.sh
+
+    echo "  -> Cleaning up..."
+    cd /
+    rm -rf "$TEMP_DIR"
+
+    echo_green "  Update complete!"
+}
 
 # --- Installation Functions ---
 
@@ -39,11 +92,17 @@ install_for_gemini() {
         return
     fi
 
-    echo "  -> Installing for Gemini CLI..."
-
     GEMINI_DIR="$HOME/.gemini"
     COMMANDS_DIR="$GEMINI_DIR/commands"
     SKILLS_DIR="$GEMINI_DIR/skills/$SKILL_NAME"
+
+    # Check if already installed
+    if [ -d "$SKILLS_DIR" ]; then
+        echo "  -> Updating Gemini CLI installation..."
+        UPDATED_TOOLS+=("Gemini CLI")
+    else
+        echo "  -> Installing for Gemini CLI..."
+    fi
 
     # Create directories
     mkdir -p "$COMMANDS_DIR"
@@ -67,7 +126,7 @@ install_for_gemini() {
     fi
 
     echo_green "  ✓ Gemini CLI installed"
-    echo "    Commands: /compliance-check, /audit, /compliance-help"
+    echo "    Commands: /compliance-check, /audit, /compliance-help, /compliance-update"
     echo "    Location: $SKILLS_DIR"
     INSTALLED_TOOLS+=("Gemini CLI")
 }
@@ -81,10 +140,16 @@ install_for_claude() {
         return
     fi
 
-    echo "  -> Installing for Claude Code..."
-
     CLAUDE_DIR="$HOME/.claude"
     SKILLS_DIR="$CLAUDE_DIR/skills/$SKILL_NAME"
+
+    # Check if already installed
+    if [ -d "$SKILLS_DIR" ]; then
+        echo "  -> Updating Claude Code installation..."
+        UPDATED_TOOLS+=("Claude Code")
+    else
+        echo "  -> Installing for Claude Code..."
+    fi
 
     # Create directories
     mkdir -p "$SKILLS_DIR"
@@ -107,10 +172,16 @@ install_for_codex() {
         return
     fi
 
-    echo "  -> Installing for OpenAI Codex..."
-
     CODEX_DIR="$HOME/.codex"
     SKILLS_DIR="$CODEX_DIR/skills/$SKILL_NAME"
+
+    # Check if already installed
+    if [ -d "$SKILLS_DIR" ]; then
+        echo "  -> Updating OpenAI Codex installation..."
+        UPDATED_TOOLS+=("OpenAI Codex")
+    else
+        echo "  -> Installing for OpenAI Codex..."
+    fi
 
     # Create directories
     mkdir -p "$SKILLS_DIR"
@@ -133,10 +204,16 @@ install_for_cursor() {
         return
     fi
 
-    echo "  -> Installing for Cursor..."
-
     CURSOR_DIR="$HOME/.cursor"
     RULES_DIR="$CURSOR_DIR/rules"
+
+    # Check if already installed
+    if [ -f "$RULES_DIR/$SKILL_NAME.mdc" ]; then
+        echo "  -> Updating Cursor installation..."
+        UPDATED_TOOLS+=("Cursor")
+    else
+        echo "  -> Installing for Cursor..."
+    fi
 
     # Create directories
     mkdir -p "$RULES_DIR"
@@ -159,10 +236,16 @@ install_for_copilot() {
         return
     fi
 
-    echo "  -> Installing for GitHub Copilot..."
-
     COPILOT_DIR="$HOME/.copilot"
     SKILLS_DIR="$COPILOT_DIR/skills/$SKILL_NAME"
+
+    # Check if already installed
+    if [ -d "$SKILLS_DIR" ]; then
+        echo "  -> Updating GitHub Copilot installation..."
+        UPDATED_TOOLS+=("GitHub Copilot")
+    else
+        echo "  -> Installing for GitHub Copilot..."
+    fi
 
     # Create directories
     mkdir -p "$SKILLS_DIR"
@@ -181,13 +264,46 @@ main() {
     echo ""
     echo_bold "=========================================="
     echo_bold "  Replication Compliance Skill Installer"
+    echo_bold "  Version: $VERSION"
     echo_bold "=========================================="
     echo ""
+
+    # Handle command line arguments
+    case "${1:-}" in
+        --update)
+            check_for_updates || true
+            echo ""
+            update_from_github
+            exit 0
+            ;;
+        --check)
+            check_for_updates
+            exit $?
+            ;;
+        --version)
+            echo "Version: $VERSION"
+            exit 0
+            ;;
+        --help|-h)
+            echo "Usage: ./install.sh [OPTIONS]"
+            echo ""
+            echo "Options:"
+            echo "  (none)     Install or update from local files"
+            echo "  --update   Download latest from GitHub and install"
+            echo "  --check    Check for updates without installing"
+            echo "  --version  Show version"
+            echo "  --help     Show this help"
+            exit 0
+            ;;
+    esac
 
     # Verify we're in the right directory
     if [ ! -d "$REPO_ROOT/$SOURCE_SKILL_DIR" ]; then
         echo_red "Error: Cannot find skill directory at $SOURCE_SKILL_DIR"
         echo_red "Please run this script from the replicator repository root."
+        echo ""
+        echo "To update from GitHub instead, run:"
+        echo "  curl -fsSL $REPO_URL/raw/main/install.sh | bash -s -- --update"
         exit 1
     fi
 
@@ -224,6 +340,9 @@ main() {
         echo ""
         echo "Install one of these tools, then run this script again."
     else
+        if [ ${#UPDATED_TOOLS[@]} -gt 0 ]; then
+            echo_green "Updated: ${UPDATED_TOOLS[*]}"
+        fi
         echo_green "Installed for: ${INSTALLED_TOOLS[*]}"
         echo ""
         echo "Quick Start:"
@@ -232,6 +351,7 @@ main() {
         echo "  3. Run: /audit .              (full report)"
         echo ""
         echo "For help: /compliance-help"
+        echo "To update: /compliance-update (or ./install.sh --update)"
         echo ""
         echo_yellow "Tip: Restart your AI tool to load the new commands."
     fi

@@ -4,10 +4,11 @@ description: Audit research repositories against the Data and Code Availability 
 license: MIT
 metadata:
   author: sodalabsio
-  version: "1.1"
+  version: "1.2"
   standard: DCAS v1.0
+  repository: https://github.com/Patrick-Healy/replicator
 compatibility: Requires file system access. Works with Stata, R, Python, MATLAB, and Julia projects.
-allowed-tools: Read Glob Grep Bash(ls:*) Bash(find:*) Bash(cat:*) Bash(head:*)
+allowed-tools: Read Glob Grep Bash(ls:*) Bash(find:*) Bash(cat:*) Bash(head:*) Bash(git:*) Bash(curl:*)
 ---
 
 # Replication Compliance Checker
@@ -505,3 +506,47 @@ For dangerous commands, provide the command but don't execute:
 **Full details:** See [references/VERSION_CONTROL_WORKFLOWS.md](references/VERSION_CONTROL_WORKFLOWS.md)
 
 **MCP setup:** See [references/GITHUB_MCP_SETUP.md](references/GITHUB_MCP_SETUP.md)
+
+---
+
+## Updating This Skill
+
+This skill can check for and install updates from GitHub automatically.
+
+### Check for Updates
+
+When asked to check for updates or when starting an audit, you can check the installed version:
+
+```bash
+# Check current version (look for 'version' in metadata)
+head -15 ~/.codex/skills/replication-compliance/SKILL.md 2>/dev/null || \
+head -15 ~/.claude/skills/replication-compliance/SKILL.md 2>/dev/null || \
+head -15 ~/.gemini/skills/replication-compliance/SKILL.md 2>/dev/null
+
+# Check latest version from GitHub
+curl -s https://raw.githubusercontent.com/Patrick-Healy/replicator/main/.github/skills/replication-compliance/SKILL.md | head -15
+```
+
+### Install Updates
+
+If an update is available, offer to install it:
+
+```bash
+# Download and run the installer
+cd /tmp && rm -rf replicator-update && \
+git clone --depth 1 https://github.com/Patrick-Healy/replicator.git replicator-update && \
+cd replicator-update && ./install.sh && \
+cd / && rm -rf /tmp/replicator-update
+```
+
+Or guide the user to run manually:
+```bash
+# User can run this one-liner to update
+curl -fsSL https://raw.githubusercontent.com/Patrick-Healy/replicator/main/install.sh -o /tmp/install.sh && bash /tmp/install.sh --update
+```
+
+### Version History
+
+- **1.2** - Auto-save reports, update commands, improved TOML format
+- **1.1** - Code-level checks, GitHub integrations
+- **1.0** - Initial release with DCAS compliance checks

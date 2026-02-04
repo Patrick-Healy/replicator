@@ -1,0 +1,24 @@
+# /compliance-update command for Gemini CLI
+# Usage: /compliance-update
+
+description = "Check for and install updates to the replication-compliance skill"
+
+prompt = """Check for updates to the replication-compliance skill and install them if available.
+
+Steps:
+1. Check current installed version:
+   - For Gemini: Look at ~/.gemini/skills/replication-compliance/SKILL.md metadata
+   - For Codex: Look at ~/.codex/skills/replication-compliance/SKILL.md metadata
+   - For Claude: Look at ~/.claude/skills/replication-compliance/SKILL.md metadata
+
+2. Check latest version from GitHub:
+   curl -s https://raw.githubusercontent.com/Patrick-Healy/replicator/main/.github/skills/replication-compliance/SKILL.md | head -20
+
+3. Compare versions. If update available, ask user to confirm update.
+
+4. If confirmed, run the update:
+   cd /tmp && rm -rf replicator-update && git clone --depth 1 https://github.com/Patrick-Healy/replicator.git replicator-update && cd replicator-update && ./install.sh && cd / && rm -rf /tmp/replicator-update
+
+5. Report what was updated.
+
+If no updates available, confirm the skill is up to date."""
