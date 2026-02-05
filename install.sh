@@ -166,14 +166,15 @@ install_for_claude() {
 install_for_codex() {
     echo_bold "Checking for OpenAI Codex..."
 
-    # Check if codex command exists or ~/.codex directory exists
-    if ! command -v codex &> /dev/null && [ ! -d "$HOME/.codex" ]; then
+    # Check if codex command exists or ~/.agents directory exists (Codex uses ~/.agents/skills/)
+    if ! command -v codex &> /dev/null && [ ! -d "$HOME/.agents" ] && [ ! -d "$HOME/.codex" ]; then
         echo "  -> OpenAI Codex not detected. Skipping."
         return
     fi
 
-    CODEX_DIR="$HOME/.codex"
-    SKILLS_DIR="$CODEX_DIR/skills/$SKILL_NAME"
+    # Codex uses ~/.agents/skills/ for user-level skills
+    AGENTS_DIR="$HOME/.agents"
+    SKILLS_DIR="$AGENTS_DIR/skills/$SKILL_NAME"
 
     # Check if already installed
     if [ -d "$SKILLS_DIR" ]; then
@@ -192,6 +193,7 @@ install_for_codex() {
     echo_green "  ✓ OpenAI Codex installed"
     echo "    Skill: \$$SKILL_NAME"
     echo "    Location: $SKILLS_DIR"
+    echo "    Alternative: \$skill-installer install replication-compliance"
     INSTALLED_TOOLS+=("OpenAI Codex")
 }
 

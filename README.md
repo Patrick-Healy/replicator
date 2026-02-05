@@ -8,22 +8,20 @@ An [Agent Skill](https://agentskills.io) for auditing research repositories agai
 
 ## Quick Install
 
-**One-liner (recommended):**
+**Cross-platform (Windows, Mac, Linux):**
+```bash
+npx ai-agent-skills install Patrick-Healy/replicator
+```
+Requires [Node.js](https://nodejs.org/). Installs to all detected agents (Claude, Cursor, Codex, Copilot, Gemini, VS Code, and more).
+
+**Mac/Linux only:**
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Patrick-Healy/replicator/main/install.sh | bash
 ```
-
-**Or clone and run:**
-```bash
-git clone https://github.com/Patrick-Healy/replicator.git
-cd replicator && ./install.sh
-```
-
-The installer auto-detects your AI tools (Gemini, Claude, Codex, Copilot, Cursor) and installs globally.
 
 **Update existing installation:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Patrick-Healy/replicator/main/install.sh | bash
+npx ai-agent-skills update Patrick-Healy/replicator
 # or run /compliance-update in your AI tool
 ```
 
@@ -83,7 +81,26 @@ This skill automates the most common checks, saving time and improving submissio
 <details>
 <summary>Click to expand manual installation options</summary>
 
-### Install Script Options
+### npx ai-agent-skills (Recommended)
+
+The [ai-agent-skills](https://github.com/skillcreatorai/Ai-Agent-Skills) package provides cross-platform installation:
+
+```bash
+# Install to all agents
+npx ai-agent-skills install Patrick-Healy/replicator
+
+# Install to specific agent only
+npx ai-agent-skills install Patrick-Healy/replicator --agent claude
+npx ai-agent-skills install Patrick-Healy/replicator --agent cursor
+
+# Preview without installing
+npx ai-agent-skills install Patrick-Healy/replicator --dry-run
+
+# Update
+npx ai-agent-skills update Patrick-Healy/replicator
+```
+
+### Bash Install Script (Mac/Linux)
 
 ```bash
 ./install.sh           # Install or update from local files
@@ -92,61 +109,72 @@ This skill automates the most common checks, saving time and improving submissio
 ./install.sh --version # Show installed version
 ```
 
-### Gemini CLI
+### Manual Installation
+
+#### Gemini CLI
 
 **Global** (available everywhere):
 ```bash
-mkdir -p ~/.gemini/commands
-cp -r /path/to/replicator/.gemini/commands/* ~/.gemini/commands/
+mkdir -p ~/.gemini/commands ~/.gemini/skills/replication-compliance
+cp -r .gemini/commands/* ~/.gemini/commands/
+cp -r .github/skills/replication-compliance/* ~/.gemini/skills/replication-compliance/
 ```
 
-**Project-level** (this repo only):
-```bash
-git clone https://github.com/Patrick-Healy/replicator.git
-cd replicator
-gemini
-```
-
-### Claude Code
+#### Claude Code
 
 **Global:**
 ```bash
-mkdir -p ~/.claude/skills
-cp -r /path/to/replicator/.github/skills/replication-compliance ~/.claude/skills/
+mkdir -p ~/.claude/skills/replication-compliance
+cp -r .github/skills/replication-compliance/* ~/.claude/skills/replication-compliance/
 ```
 
 **Project-level:**
 ```bash
-mkdir -p .claude/skills
-cp -r /path/to/replicator/.github/skills/replication-compliance .claude/skills/
+mkdir -p .claude/skills/replication-compliance
+cp -r .github/skills/replication-compliance/* .claude/skills/replication-compliance/
 ```
 
-### OpenAI Codex
+#### OpenAI Codex (CLI only)
 
-**Using skill-installer:**
-```
-$skill-installer install replication-compliance from Patrick-Healy/replicator
-```
-
-**Manual:**
-```bash
-mkdir -p ~/.codex/skills
-cp -r /path/to/replicator/.github/skills/replication-compliance ~/.codex/skills/
-```
-
-### GitHub Copilot
+> **Note:** This works with Codex CLI (`npm i -g @openai/codex`), not the web UI at chatgpt.com/codex.
 
 ```bash
-mkdir -p ~/.copilot/skills
-cp -r /path/to/replicator/.github/skills/replication-compliance ~/.copilot/skills/
+mkdir -p ~/.codex/skills/replication-compliance
+cp -r .github/skills/replication-compliance/* ~/.codex/skills/replication-compliance/
 ```
 
-### Cursor
+#### GitHub Copilot
+
+```bash
+mkdir -p ~/.copilot/skills/replication-compliance
+cp -r .github/skills/replication-compliance/* ~/.copilot/skills/replication-compliance/
+```
+
+#### Cursor
 
 ```bash
 mkdir -p ~/.cursor/rules
-cp /path/to/replicator/.github/skills/replication-compliance/SKILL.md \
-   ~/.cursor/rules/replication-compliance.mdc
+cp .github/skills/replication-compliance/SKILL.md ~/.cursor/rules/replication-compliance.mdc
+```
+
+#### Windows (PowerShell)
+
+```powershell
+# Clone the repo
+git clone https://github.com/Patrick-Healy/replicator.git
+cd replicator
+
+# Claude Code
+New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.claude\skills\replication-compliance"
+Copy-Item -Recurse ".github\skills\replication-compliance\*" "$env:USERPROFILE\.claude\skills\replication-compliance\"
+
+# Cursor
+New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.cursor\rules"
+Copy-Item ".github\skills\replication-compliance\SKILL.md" "$env:USERPROFILE\.cursor\rules\replication-compliance.mdc"
+
+# OpenAI Codex CLI
+New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.codex\skills\replication-compliance"
+Copy-Item -Recurse ".github\skills\replication-compliance\*" "$env:USERPROFILE\.codex\skills\replication-compliance\"
 ```
 
 </details>
@@ -155,13 +183,15 @@ cp /path/to/replicator/.github/skills/replication-compliance/SKILL.md \
 
 ## Agent Compatibility
 
-| Agent | Global Location | Project Location |
-|-------|-----------------|------------------|
-| **Gemini CLI** | `~/.gemini/commands/` | `.gemini/commands/` |
-| **Claude Code** | `~/.claude/skills/` | `.claude/skills/` |
-| **OpenAI Codex** | `~/.codex/skills/` | `.codex/skills/` |
-| **GitHub Copilot** | `~/.copilot/skills/` | `.github/skills/` |
-| **Cursor** | `~/.cursor/rules/` | `.cursor/rules/` |
+| Agent | Global Location | Project Location | Windows |
+|-------|-----------------|------------------|---------|
+| **Gemini CLI** | `~/.gemini/skills/` | `.gemini/skills/` | `%USERPROFILE%\.gemini\skills\` |
+| **Claude Code** | `~/.claude/skills/` | `.claude/skills/` | `%USERPROFILE%\.claude\skills\` |
+| **OpenAI Codex** | `~/.codex/skills/` | `.codex/skills/` | `%USERPROFILE%\.codex\skills\` |
+| **GitHub Copilot** | `~/.copilot/skills/` | `.github/skills/` | `%USERPROFILE%\.copilot\skills\` |
+| **Cursor** | `~/.cursor/rules/` | `.cursor/rules/` | `%USERPROFILE%\.cursor\rules\` |
+| **VS Code** | — | `.github/skills/` | `.github\skills\` |
+| **Amp** | `~/.amp/skills/` | — | `%USERPROFILE%\.amp\skills\` |
 
 **Documentation:**
 - [Agent Skills Standard](https://agentskills.io/specification)
